@@ -149,7 +149,7 @@ impl EventHandler for Handler
         }
 
         Command::set_global_application_commands(&context.http, |commands| {
-            commands.create_application_command(|command| builtins::users::register_exile(command))
+            commands.create_application_command(|command| builtins::users::kick::register(command))
         })
         .await
         .unwrap();

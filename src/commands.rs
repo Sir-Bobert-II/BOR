@@ -7,14 +7,14 @@ use serenity::{
     prelude::Context,
 };
 
-use crate::builtins::users::exile;
+use crate::builtins::users::kick;
 
 pub async fn run(context: Context, command: ApplicationCommandInteraction)
 {
     let command_name = command.data.name.as_str();
     let content = match command_name
     {
-        "exile" =>
+        "kick" =>
         {
             let option_user = command
                 .data
@@ -46,7 +46,7 @@ pub async fn run(context: Context, command: ApplicationCommandInteraction)
 
             if let CommandDataOptionValue::User(user, _member) = option_user
             {
-                exile(&context, guild_id, user.id, reason).await
+                kick::run(&context, guild_id, user.id, reason).await
             }
             else
             {
