@@ -153,6 +153,5 @@ impl EventHandler for Handler
         })
         .await
         .unwrap();
-        // Command::create_global_application_command(http, f)
     }
 }
