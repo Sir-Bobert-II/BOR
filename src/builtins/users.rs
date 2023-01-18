@@ -1,25 +1,14 @@
-use log::error;
     use serenity::{
-        builder::CreateApplicationCommand,
         model::{
-            prelude::{command::CommandOptionType, GuildId, User},
-            Permissions,
+            prelude::{ GuildId, Member, UserId},
         },
         prelude::Context,
     };
 
 /// Get a member from a user id
-pub fn member_from_id(context: &Context, gid:GuildId, id: UserId) -> Result<String, String>
+pub async fn member_from_id(context: &Context, gid:GuildId, id: UserId) -> Member
 {
-    match gid.member(&context.http, id).await
-    {
-        Ok(x) => Ok(x),
-        Err(x) =>
-        {
-            error!("Error getting guild member: {:?}", x);
-            Err("Error getting guild member: Couldn't kick member".to_string());
-        }
-    }
+    gid.member(&context.http, id).await.unwrap()
 }
 
 pub mod kick
@@ -28,33 +17,27 @@ pub mod kick
     use serenity::{
         builder::CreateApplicationCommand,
         model::{
-            prelude::{command::CommandOptionType, GuildId, UserId},
-            Permissions,
+            prelude::{command::CommandOptionType, GuildId},
+            Permissions, user::User,
         },
         prelude::Context,
     };
 
+    use super::member_from_id;
+
     /// Kick a user from a guild
-    pub async fn run(context: &Context, gid: GuildId, user: User, reason: String) -> String
+    pub async fn run(context: &Context, gid: &GuildId, user: &User, reason: String) -> String
     {
-        let member =match gid.member(&context, gid, user.id).await
-        {
-            Ok(x) => Ok(x),
-            Err(x) =>
-            {
-                error!("{x}");
-                return Err(x)
-            }
-        }
+        let member = member_from_id(&context, *gid, user.id).await;
     
 
         match member.kick_with_reason(&context.http, &reason).await
         {
-            Ok(_) => format!("Kicked '{}'", user.name)
+            Ok(_) => format!("Kicked '{}'", user.name),
             Err(x) =>
             {
                 error!("Error kicking guild member: {:?}", x);
-                "Error kicking guild member: Couldn't kick member".to_string()
+                format!("Error kicking guild member: {:?}", x)
             }
         }
     }
@@ -62,7 +45,7 @@ pub mod kick
     pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicationCommand
     {
         command
-            .name("Kick")
+            .name("exile")
             .description("Kick a member from this guild")
             .dm_permission(false)
             .default_member_permissions(Permissions::KICK_MEMBERS)
@@ -75,7 +58,7 @@ pub mod kick
             })
             .create_option(|option| {
                 option
-                    .name("Reason")
+                    .name("reason")
                     .description("The reason why you're kicking this user")
                     .kind(CommandOptionType::String)
                     .required(false)
@@ -83,7 +66,7 @@ pub mod kick
     }
 }
 
-pub mod Ban {
+pub mod ban {
     use log::error;
     use serenity::{
         builder::CreateApplicationCommand,
@@ -93,22 +76,16 @@ pub mod Ban {
         },
         prelude::Context,
     };
-    /// Ban a user from a guild
-    pub async fn run(context: &Context, gid: GuildId, user: User, reason: String, dmd:u8) -> String
-    {
-        let member =match gid.member(&context, gid, user.id).await
-        {
-            Ok(x) => Ok(x),
-            Err(x) =>
-            {
-                error!("{x}");
-                return Err(x)
-            }
-        }
 
-        match gid.member(&context, gid, user.id).await
+    use super::member_from_id;
+    /// Ban a user from a guild
+    pub async fn run(context: &Context, gid: &GuildId, user: &User, reason: String, dmd:u8) -> String
+    {
+        let member = member_from_id(&context, *gid, user.id).await;
+
+        match member.ban_with_reason(&context.http,dmd, reason ).await
         {
-            Ok(_) => format!("Banned '{}'", user.name)
+            Ok(_) => format!("Banned '{}'", user.name),
             Err(x) =>
             {
                 error!("Error banning guild member: {:?}", x);
@@ -120,20 +97,20 @@ pub mod Ban {
     pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicationCommand
     {
         command
-            .name("ban")
+            .name("banish")
             .description("Ban a member from this guild")
             .dm_permission(false)
             .default_member_permissions(Permissions::BAN_MEMBERS)
             .create_option(|option| {
                 option
-                    .name("User")
+                    .name("user")
                     .description("The user to ban")
                     .kind(CommandOptionType::User)
                     .required(true)
             })
             .create_option(|option| {
                 option
-                    .name("Reason")
+                    .name("reason")
                     .description("The reason why you're banning this user")
                     .kind(CommandOptionType::String)
                     .required(false)
@@ -141,111 +118,11 @@ pub mod Ban {
             .create_option(|option|
             {
                 option
-                    .name("Delete Messages")
-                    .description("The number of days of messages to delete")
-                    .kind(CommandOptionType:Number)
+                    .name("days")
+                    .description("The number of days of messages to delete (Max: 7)")
+                    .kind(CommandOptionType::Integer)
                     .required(false)
             })
     }
 }
 
-pub mod Timeout
-{
-    use log::error;
-    use serenity::{
-        builder::CreateApplicationCommand,
-        model::{
-            prelude::{command::CommandOptionType, GuildId, User},
-            Permissions,
-        },
-        prelude::Context,
-    };
-
-    /// Timeout a user in a guild
-    pub fn timeout(context: &Context, gid: GuildId, user: User, until: Timestamp) -> String
-    {
-        let member = match gid.member(&context, gid, user.id).await
-        {
-            Ok(x) => x,
-            Err(x) =>
-            {
-                error!("{x}");
-                return x
-            }
-        }
-
-        match member.disable_communication_until_datetime(&context.http, until)
-        {
-            Ok(_) => format!("Timed out '{}'", user.name)
-            Err(x) =>
-            {
-                error!("Error timing out guild member: {:?}", x);
-                format!("Error timing out guild member: {x}")
-            }
-        }
-
-    }
-
-    pub fn timein(context: &Context, gid: GuildId, user: User) -> String
-    {
-        let member = match gid.member(&context, gid, user.id).await
-        {
-            Ok(x) => Ok(x),
-            Err(x) =>
-            {
-                error!("{x}");
-                return Err(x)
-            }
-        }
-
-        match member.enable_communication(&context.http)
-        {
-            Ok(_) => format!("timed in '{}'", user.name)
-            Err(x) =>
-            {
-                error!("Error timing in guild member: {:?}", x);
-                format!("Error timing in guild member: {x}")
-            }
-        }
-    }
-
-
-    pub fn register_timeout(command: &mut CreateApplicationCommand) -> &mut CreateApplicationCommand
-    {
-        command
-            .name("timeout")
-            .description("Timeout a user")
-            .dm_permission(false)
-            .default_member_permissions(Permissions::MODERATE_MEMBERS)
-            .create_option(|option| {
-                option
-                    .name("User")
-                    .description("The user to timeout")
-                    .kind(CommandOptionType::User)
-                    .required(true)
-            })
-            .create_option(|option| {
-                option
-                    .name("Time")
-                    .description("How long to timeout a user for")
-                    .kind(CommandOptionType::Timestamp)
-                    .required(true)
-            })
-    }
-
-    pub fn register_timein(command: &mut CreateApplicationCommand) -> &mut CreateApplicationCommand
-    {
-        command
-            .name("timein")
-            .description("End a User's timeout")
-            .dm_permission(false)
-            .default_member_permissions(Permissions::MODERATE_MEMBERS)
-            .create_option(|option| {
-                option
-                    .name("User")
-                    .description("The user to timein")
-                    .kind(CommandOptionType::User)
-                    .required(true)
-            })
-    }
-}

@@ -140,18 +140,14 @@ impl EventHandler for Handler
     async fn ready(&self, context: Context, ready: Ready)
     {
         info!("{} is connected!", ready.user.name);
-
-        for cmd in Command::get_global_application_commands(context.clone())
-            .await
-            .unwrap()
-        {
-            let _ = Command::delete_global_application_command(context.clone(), cmd.id).await;
-        }
-
         Command::set_global_application_commands(&context.http, |commands| {
-            commands.create_application_command(|command| builtins::users::kick::register(command))
+            commands
+                .create_application_command(|command| builtins::users::kick::register(command))
+                .create_application_command(|command| builtins::users::ban::register(command))
+                .create_application_command(|command| builtins::meta::register(command))
         })
         .await
         .unwrap();
+        info!("Commands stetp")
     }
 }

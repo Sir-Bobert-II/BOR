@@ -7,9 +7,7 @@ use serenity::{
     prelude::Context,
 };
 
-use crate::builtins::users;
-
-
+use crate::builtins::{users, meta};
 pub async fn run(context: Context, command: ApplicationCommandInteraction)
 {
     let command_name = command.data.name.as_str();
@@ -17,159 +15,98 @@ pub async fn run(context: Context, command: ApplicationCommandInteraction)
     {
         "kick" =>
         {
-            let option_user = command
-                .data
-                .options
-                .get(0)
-                .expect("Expected user option")
-                .resolved
-                .as_ref()
-                .expect("Expected user object");
-
-            let mut reason: String = "No reason provided.".to_string();
-            if command.data.options.len() > 1
+            let mut user = None;
+            let mut reason = "No reason provided.".to_string();
+            for option in command.data.options.clone()
             {
-                let option_reason = command
-                    .data
-                    .options
-                    .get(1)
-                    .expect("Expected user option")
-                    .resolved
-                    .as_ref()
-                    .expect("Expected user object");
+                let opt = option.resolved.unwrap();
 
-                if let CommandDataOptionValue::String(x) = option_reason
+                match &*option.name
                 {
-                    reason = x.clone();
-                }
-            }
-
-            let guild_id = command.guild_id.unwrap();
-
-            if let CommandDataOptionValue::User(user, _member) = option_user
-            {
-                users::kick::run(&context, guild_id, user, reason).await
-            }
-            else
-            {
-                "Error: Inproper value provided".to_string()
-            }
-        },
-
-        "ban" => {
-            let option_user = command
-                .data
-                .options
-                .get(0)
-                .expect("Expected user option")
-                .resolved
-                .as_ref()
-                .expect("Expected user object");
-
-            let mut reason: String = "No reason provided.".to_string();
-            if command.data.options.len() > 1
-            {
-                let option_reason = command
-                    .data
-                    .options
-                    .get(1)
-                    .expect("Expected user option")
-                    .resolved
-                    .as_ref()
-                    .expect("Expected user object");
-
-                if let CommandDataOptionValue::String(x) = option_reason
-                {
-                    reason = x.clone();
-                }
-            }
-
-            let guild_id = command.guild_id.unwrap();
-
-            if let CommandDataOptionValue::User(user, _member) = option_user
-            {
-                users::ban::run(&context, guild_id, user, reason).await
-            }
-            else
-            {
-                "Error: Inproper value provided".to_string()
-            }
-        }
-
-        "timeout" => {
-            let user;
-            let timestamp;
-            for option in command.data.options
-            {
-                let opt = option.resolved.as_ref().unwrap();
-                
-                match &opt.name
-                {
-                    "User" => {
+                    "User" =>
+                    {
                         if let CommandDataOptionValue::User(u, _) = opt
                         {
                             user = Some(u);
                         }
-                    },
-
-                    "Time" => {
-                        if let CommandDataOptionValue::Timestamp(t, _) = opt
+                    }
+                    "Reason" =>
+                    {
+                        if let CommandDataOptionValue::String(r) = opt
                         {
-                            timestamp = Some(t);
+                            reason = r.clone();
                         }
                     }
 
-                    _=> unreachable!();
-                    
+                    _ => unreachable!(),
                 }
             }
+
+            if user.is_none()
+            {
+                error!("Cannot respond to slash command: No 'User' provided");
+                return;
+            }
+            let user = user.unwrap();
+
             let guild_id = command.guild_id.unwrap();
 
-            if let (Some(user), Some(time)) = (user, timestamp) 
-            {
-                users::timeout::timeout(&context, guild_id, user, time)
-            }
-            else
-            {
-                "Error: Internal command parameter problem".to_string()
-            }
-
-            
+            users::kick::run(&context, &guild_id, &user, reason).await;
+            format!("Kicked '{}'.", user.name)
         }
 
-        "timein" => {
-            let user;
-            for option in command.data.options
+        "ban" =>
+        {
+            let mut user = None;
+            let mut days: u8 = 0;
+            let mut reason = "No reason provided.".to_string();
+
+            for option in command.data.options.clone()
             {
-                let opt = option.resolved.as_ref().unwrap();
-                
-                match &opt.name
+                let opt = option.resolved.unwrap();
+
+                match &*option.name
                 {
-                    "User" => {
+                    "User" =>
+                    {
                         if let CommandDataOptionValue::User(u, _) = opt
                         {
                             user = Some(u);
                         }
-                    },
+                    }
+                    "Reason" =>
+                    {
+                        if let CommandDataOptionValue::String(r) = opt
+                        {
+                            reason = r.clone();
+                        }
+                    }
+                    "Delete Messages" =>
+                    {
+                        if let CommandDataOptionValue::Integer(i) = opt
+                        {
+                            days = i.clamp(0, 7) as u8;
+                        }
+                    }
 
-                    _=> unreachable!();
-                    
+                    _ => unreachable!(),
                 }
             }
+
+            if user.is_none()
+            {
+                error!("Cannot respond to slash command: No 'User' provided");
+                return;
+            }
+            let user = user.unwrap();
+
             let guild_id = command.guild_id.unwrap();
 
-            if let (Some(user), Some(time)) = (user, timestamp) 
-            {
-                users::timeout::timein(&context, guild_id, user);
-            }
-            else
-            {
-                "Error: Internal command parameter problem".to_string()
-            }
+            users::ban::run(&context, &guild_id, &user, reason, days).await;
+            format!("Banned '{}'.", user.name)
         }
-        
-        
-        
+
+        "meta" => meta::meta(),
         _ => format!("Error: Unrecognized command {}.", command_name),
     };
 
