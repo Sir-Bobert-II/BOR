@@ -136,9 +136,9 @@ pub async fn run(context: Context, command: ApplicationCommandInteraction)
 
             
         }
+
         "timein" => {
             let user;
-            let timestamp;
             for option in command.data.options
             {
                 let opt = option.resolved.as_ref().unwrap();
@@ -167,6 +167,9 @@ pub async fn run(context: Context, command: ApplicationCommandInteraction)
                 "Error: Internal command parameter problem".to_string()
             }
         }
+        
+        
+        
         _ => format!("Error: Unrecognized command {}.", command_name),
     };
 

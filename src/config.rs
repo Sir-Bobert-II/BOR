@@ -1,4 +1,4 @@
-use std::{fs::read_to_string, path::PathBuf};
+use std::{fs::{read_to_string}, path::PathBuf};
 use serde_derive::*;
 use serenity::json;
 use structstruck::strike;
