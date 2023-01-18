@@ -89,7 +89,7 @@ impl EventHandler for Handler
     async fn message(&self, context: Context, msg: Message)
     {
         // Check for restricted words and remove them
-        if filtering::is_restricted(msg.content.clone(), &RESTRICTED_WORDS.words)
+        if !msg.is_private() && filtering::is_restricted(msg.content.clone(), &RESTRICTED_WORDS.words)
         {
             if let Err(why) = msg.delete(&context.http).await
             {
@@ -99,37 +99,6 @@ impl EventHandler for Handler
                 .mention(&msg.author)
                 .push("Used a restricted word!")
                 .build();
-            if let Err(why) = msg.channel_id.say(&context.http, &response).await
-            {
-                error!("Error sending message: {:?}", why);
-            }
-        }
-
-        if msg.content == "!ping"
-        {
-            let channel = match msg.channel_id.to_channel(&context).await
-            {
-                Ok(channel) => channel,
-                Err(why) =>
-                {
-                    error!("Error getting channel: {:?}", why);
-
-                    return;
-                }
-            };
-
-            // The message builder allows for creating a message by
-            // mentioning users dynamically, pushing "safe" versions of
-            // content (such as bolding normalized content), displaying
-            // emojis, and more.
-            let response = MessageBuilder::new()
-                .push("User ")
-                .push_bold_safe(&msg.author.name)
-                .push(" used the 'ping' command in the ")
-                .mention(&channel)
-                .push(" channel")
-                .build();
-
             if let Err(why) = msg.channel_id.say(&context.http, &response).await
             {
                 error!("Error sending message: {:?}", why);

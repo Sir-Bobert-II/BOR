@@ -1,6 +1,5 @@
 use serenity::builder::CreateApplicationCommand;
 
-use crate::NAME;
 const SITE: &str = "https://github.com/El-Wumbus/Law-Enforcement-Bot";
 const AUTHORS: [&str; 1] = ["Decator <decator.c@proton.me>"];
 
