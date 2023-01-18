@@ -3,7 +3,6 @@ mod commands;
 mod config;
 mod error;
 mod filtering;
-mod logging;
 
 use config::{Config, RestrictedWords};
 use error::Error;
@@ -14,7 +13,7 @@ use log::{error, info};
 use serenity::{
     async_trait,
     model::{
-        application::{command::CommandOptionType, interaction::Interaction},
+        application::interaction::Interaction,
         channel::Message,
         gateway::Ready,
         prelude::{command::Command, *},

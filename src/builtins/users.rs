@@ -20,9 +20,9 @@ pub async fn exile(context: &Context, gid: GuildId, id: UserId, reason: String) 
         }
     };
 
-    match member.kick(&context.http).await
+    match member.kick_with_reason(&context.http, &reason).await
     {
-        Ok(_) => "Success fully exiled member".to_string(),
+        Ok(_) => "Successfully exiled member".to_string(),
         Err(x) =>
         {
             error!("Error kicking guild member: {:?}", x);
@@ -44,5 +44,12 @@ pub fn register_exile(command: &mut CreateApplicationCommand) -> &mut CreateAppl
                 .description("The user to lookup")
                 .kind(CommandOptionType::User)
                 .required(true)
+        })
+        .create_option(|option| {
+            option
+                .name("Reason")
+                .description("The reason why you're exiling this user")
+                .kind(CommandOptionType::String)
+                .required(false)
         })
 }

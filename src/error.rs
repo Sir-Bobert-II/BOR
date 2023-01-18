@@ -1,4 +1,4 @@
-use std::process::exit;
+// use std::process::exit;
 
 #[derive(Clone, Default, PartialEq)]
 pub struct Error {
@@ -18,22 +18,22 @@ impl Error {
         self
     }
 
-    pub fn report(self)
-    {
-        eprintln!("Error: {}.", self.error);
-        if self.fatal
-        {
-            exit(self.code.into());
-        }
-    }
+    // pub fn report(self)
+    // {
+    //     eprintln!("Error: {}.", self.error);
+    //     if self.fatal
+    //     {
+    //         exit(self.code.into());
+    //     }
+    // }
 
-    pub fn handle(res: Result<(), Error>)
-    {
-        if let Err(err) = res
-        {
-            err.report()
-        }
-    }
+    // pub fn handle(res: Result<(), Error>)
+    // {
+    //     if let Err(err) = res
+    //     {
+    //         err.report()
+    //     }
+    // }
 }
 
 impl ToString for Error
