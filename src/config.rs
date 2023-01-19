@@ -43,7 +43,7 @@ strike! {
         pub resources: pub struct
         {
             pub restricted_words: PathBuf,
-            pub warnings_file: PathBuf,
+            pub warnings: PathBuf,
         }
 
         pub users: pub struct
