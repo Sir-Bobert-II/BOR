@@ -126,7 +126,6 @@ dependencies = [
  "js-sys",
  "num-integer",
  "num-traits",
- "serde",
  "time 0.1.45",
  "wasm-bindgen",
  "winapi",
@@ -595,6 +594,7 @@ dependencies = [
  "chrono",
  "env_logger",
  "lazy_static",
+ "leb_warn",
  "log",
  "serde",
  "serde_derive",
@@ -602,7 +602,6 @@ dependencies = [
  "structstruck",
  "tokio",
  "toml",
- "wd_log",
 ]
 
 [[package]]
@@ -610,6 +609,20 @@ name = "lazy_static"
 version = "1.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e2abad23fbc42b3700f2f279844dc832adb2b2eb069b2df918f455c4e18cc646"
+
+[[package]]
+name = "leb_warn"
+version = "0.1.5"
+source = "git+https://github.com/El-Wumbus/LEB-Warn.git#e07f82b2339df527273dd15a759c00d2136b8eab"
+dependencies = [
+ "chrono",
+ "serde",
+ "serde_derive",
+ "serde_json",
+ "serenity",
+ "structstruck",
+ "tokio",
+]
 
 [[package]]
 name = "libc"
@@ -875,9 +888,9 @@ dependencies = [
 
 [[package]]
 name = "rustix"
-version = "0.36.6"
+version = "0.36.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4feacf7db682c6c329c4ede12649cd36ecab0f3be5b7d74e6a20304725db4549"
+checksum = "d4fdebc4b395b7fbb9ab11e462e20ed9051e7b16e42d24042c776eca0ac81b03"
 dependencies = [
  "bitflags",
  "errno",
@@ -1456,16 +1469,6 @@ name = "wasm-bindgen-shared"
 version = "0.2.83"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1c38c045535d93ec4f0b4defec448e4291638ee608530863b1e2ba115d4fff7f"
-
-[[package]]
-name = "wd_log"
-version = "0.1.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "93c9e9d83964a485ec2edca0eaf9bc1b9be3df2d9a77c47cea5141af8ac7a944"
-dependencies = [
- "chrono",
- "lazy_static",
-]
 
 [[package]]
 name = "web-sys"

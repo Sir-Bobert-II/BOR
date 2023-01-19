@@ -42,7 +42,14 @@ strike! {
 
         pub resources: pub struct
         {
-            pub restricted_words: PathBuf
+            pub restricted_words: PathBuf,
+            pub warnings_file: PathBuf,
+        }
+
+        pub users: pub struct
+        {
+            #[serde(default = 4)]
+            pub max_warnings: u8,
         }
     }
 }

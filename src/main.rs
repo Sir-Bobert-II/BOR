@@ -43,16 +43,7 @@ lazy_static! {
 #[tokio::main]
 async fn main() -> Result<(), Error>
 {
-    // if !LOGFILE.parent().unwrap().exists()
-    // {
-    //     create_dir_all(LOGFILE.parent().unwrap()).unwrap();
-    // }
 
-    // wd_log::output_to_file(LOGFILE.to_owned()).unwrap();
-
-    // env_logger::init_from_env(
-    //     env_logger::Env::default().filter_or(env_logger::DEFAULT_FILTER_ENV, "info"),
-    // );
     env_logger::init();
     info!("Initialized Logger");
 
@@ -113,8 +104,11 @@ impl EventHandler for Handler
             commands
                 .create_application_command(|command| builtins::users::kick::register(command))
                 .create_application_command(|command| builtins::users::ban::register(command))
+                .create_application_command(|command| builtins::users::warn::register_warn(command))
+                .create_application_command(|command| builtins::users::warn::register_get_warns(command))
+                .create_application_command(|command| builtins::users::warn::register_remove_warns(command))
                 .create_application_command(|command| builtins::meta::register(command))
-        })
+        })  
         .await
         .unwrap();
         info!("Commands stetp")
