@@ -1,0 +1,28 @@
+pkgname="leb-git"
+_pkgname="leb"
+pkgver=0.2
+pkgrel=1
+pkgdesc="Law Enforcement Bot is a self-hostable dicord bot."
+arch=("x86_64")
+url="https://github.com/El-Wumbus/Law-Enforcement-Bot"
+license=("APACHE")
+provides=("leb")
+makedepends=("rust")
+source=($_pkgname::"git+"https://github.com/El-Wumbus/Law-Enforcement-Bot.git")
+sha256sums=("SKIP")
+
+pkgver() {
+  cd "$_pkgname"
+  printf "r%s.$s" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"
+}
+
+build() {
+  cd "$_pkgname"
+  cargo build --release
+}
+
+package() {
+  cd "$_pkgname"
+  install target/release/leb -Dm755 ${pkgdir}/usr/bin/leb
+  install installation/leb.serice -Dm754 ${pkgdir}/etc/systemd/system/leb.service 
+}

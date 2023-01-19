@@ -6,13 +6,51 @@ stability.
 
 The bot currently only support Linux.
 
+## Features
+
+* Warning system
+
+### Commmands
+
+* `kick` -- Kick a user
+* `ban` -- Ban a user
+* `warn` -- Warn a user
+* `get_warns` -- Get all warnings for a user
+* `remove_warns` -- Remove all warnings for a user
+
 ## Compiling
 
-d
+### Linux
+
+First, clone the source code with git. Next move into the directory and compile with
+`cargo`. If running Arch Linux (or a variant) use the [Arch](#pkgbuild-arch-recommended)
+instructions instead.
+
+```sh
+git clone https://github.com/El-Wumbus/Law-Enforcement-Bot leb
+cd leb
+cargo build --release
+install target/release/leb -Dm755 /usr/bin/leb
+```
+
+#### PKGBUILD (Arch) *Recommended*
+
+```sh
+# Download PKGBUILD
+curl -LO https://github.com/El-Wumbus/Law-Enforcement-Bot/raw/master/installation/PKGBUILD
+
+# Build the package and install it, along with any dependencies
+makepkg -si
+```
+
+### Build dependencies
+
+* Cargo
+* Git
 
 ## Running
 
-To self-host this discord bot you first must [compile](#compiling) it.
+To run this discord bot you must first [compile](#compiling) it.
 
 After building an executable program the next step is configuring it.
 
@@ -33,7 +71,7 @@ warnings = "/var/local/leb/warnings.json" # Default: "/var/local/leb/warnings.js
 ```
 
 `secrets` contains `token`, your discord application token. Next, `resources` contains
-paths to where resources are stored. These aren't meant to be read by the end user and so
+paths to where resources are stored. These aren't meant to be read by the end user, so they
 are JSON documents. Specifing any of these resources is optional as the default values are
 usually sufficiant.
 
@@ -41,7 +79,17 @@ usually sufficiant.
 
 For systems using *systemd* a service file is included with the source code of the program.
 To make the bot run on system startup we can install this service file and enable it.
+**If you used the PKGBUILD to install LEB, skip the service installation.**
 
 ```sh
-# In leb/tools
+# In leb/installation
+sudo ./install_service.sh # Install service
+sudo systemctl enable --now leb.service # Enable service
+```
+
+This installs, enables, and starts LEB. To read logs and see that status of LEB use systemd's
+`status`:
+
+```sh
+sudo systemctl status leb
 ```
