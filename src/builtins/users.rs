@@ -291,3 +291,85 @@ pub mod warn
             })
     }
 }
+
+pub mod timeout
+{
+    use serenity::{
+        builder::CreateApplicationCommand,
+        model::{
+            timestamp::Timestamp,
+            prelude::{command::CommandOptionType, GuildId, User},
+            Permissions,
+        },
+        prelude::Context,
+    };
+    use chrono::{Duration, Utc};
+
+    pub struct TimeoutTime
+    {
+        seconds: Option<u32>,
+        minutes: Option<u32>,
+        hours: Option<u32>,
+        days: Option<u32>,
+    }
+
+    pub fn generate_ending_time(
+        time: TimeoutTime ,
+    ) -> Timestamp
+    {
+        let mut when = Utc::now();
+        if let Some(seconds) = time.seconds
+        {
+            when += Duration::seconds(secs);
+        }
+        if let Some(minutes) = time.minutes
+        {
+            when += Duration::minutes(min);
+        }
+        if let Some(hours) = time.hours
+        {
+            when += Duration::hours(hours);
+        }
+        if let Some(days) = time.days
+        {
+            when += Duration::Days(days);
+        }
+
+        Timestamp::from_unix_timestamp(when.timestamp());
+    }
+
+    pub fn timeout(
+        context: &Context,
+        gid: GroupId,
+        user: User,
+        until: Timestamp,
+        time: TimeoutTime,
+        auto: bool
+        
+    ) -> Option<String>
+    {
+        let member = member_from_id(&context, *gid, user.id).await;
+        match member.disable_communication_until_datetime(
+            &context.http,
+            generate_ending_time(time),
+        )
+        {
+            Ok() => {
+                if !auto
+                {
+                    Some(format!("Timed out user {}", user.name))
+                }
+                else
+                {
+                    None
+                }
+            },
+            Err(x) => Some(format!("Error: {x}"))
+        }
+    }
+
+    pub fn release(context: &Context, gid: GroupId, user: User) -> String
+    {
+        
+    }
+}
