@@ -1,0 +1,10 @@
+[Unit]
+Description=LEB Discord bot
+After=multi-user.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/leb
+
+[Install]
+WantedBy=multi-user.target
