@@ -29,8 +29,9 @@ instructions instead.
 ```sh
 git clone https://github.com/El-Wumbus/Law-Enforcement-Bot leb
 cd leb
-cargo build --release
-install target/release/leb -Dm755 /usr/bin/leb
+cargo build --release # Build program
+install target/release/leb -Dm755 /usr/bin/leb # Install program
+install -Dvm754 ./leb.service /etc/systemd/system/leb.service # Install systemd service
 ```
 
 #### PKGBUILD (Arch) *Recommended*
@@ -78,12 +79,9 @@ usually sufficiant.
 ### Bot as a Service
 
 For systems using *systemd* a service file is included with the source code of the program.
-To make the bot run on system startup we can install this service file and enable it.
-**If you used the PKGBUILD to install LEB, skip the service installation.**
+To make the bot run on system startup we can enable the service.
 
 ```sh
-# In leb/installation
-sudo ./install_service.sh # Install service
 sudo systemctl enable --now leb.service # Enable service
 ```
 

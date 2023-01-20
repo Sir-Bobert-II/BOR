@@ -1,9 +1,9 @@
-use std::{fs::{read_to_string}, path::PathBuf, io::{Error, ErrorKind}};
+use std::{fs::{read_to_string, create_dir_all, self}, path::PathBuf, io::{Error, ErrorKind}};
 use serde_derive::*;
-use serenity::json;
+use serenity::{json, model::prelude::GuildId};
 use structstruck::strike;
 use serenity::model::channel::Channel;
-
+use serenity::model::prelude::PartialChannel;
 #[derive(Deserialize, Clone, Serialize)]
 pub struct RestrictedWords
 {
@@ -14,16 +14,12 @@ impl RestrictedWords
 {
     pub fn from(path: PathBuf) -> Result<Self, Error>
     {
-        let contents = match read_to_string(path)
-        {
-            Ok(x) =>x,
-            Err(x) => return Err(Error::new(x.to_string(), 1).fatal())
-        };
-        
+        let contents = read_to_string(path)?;
         let words: Self = match json::prelude::from_str(&contents)
         {
             Ok(x)=>x,
-            Err(x) => return Err(Error::new(x.to_string(), 1).fatal())
+            Err(x) => return Err(Error::new(ErrorKind::Other, x))
+           
         };
 
         Ok(words)
@@ -33,23 +29,25 @@ impl RestrictedWords
 
 strike!
 {
-    #[strikethrough[derive(Deserialize, Serialize, Debug, PartialEq, Clone, Default)]]
+    #[strikethrough[derive(Deserialize, Serialize, Debug, Clone, Default)]]
     #[strikethrough[serde(rename_all = "camelCase")]]
     pub struct GuildSettings
     {
         pub guilds: Vec<pub struct GuildSetting {
             /// Guild Id
             pub gid: GuildId,
-            pub settings: pub struct Settings {
+            pub settings: 
+            pub struct Settings {
                 
                 /// The channel to log events
-                pub log_channel: Option<Channel>,
+                pub log_channel: Option<PartialChannel>,
 
                 /// Additional restricted words local to a guild
                 pub restricted_words: Vec<String>,
 
                 /// How to behave when a warning limit is reached
-                pub warning_behavior: pub enum WarnBehavior{
+                pub warning_behavior: 
+                pub enum WarnBehavior{
 
                     /// Do nothing, no warning limit.
                     #[default]
@@ -63,17 +61,14 @@ strike!
 
                     /// Timeout a user after a specified number of warnings for a specified
                     /// lentgh of time
-                    Timeout {
+                    Timeout{
                         /// The number of warnings
-                        pub warning_count: u8,
+                        warning_count: u8,
 
                         /// How long to timeout for
-                        pub duration: crate::builtins::users::timeout::TimeoutTime,
+                        duration: crate::builtins::users::timeout::TimeoutTime,
                     },
                 },
-
-                >
-
             }
         }>
     }
@@ -85,7 +80,7 @@ impl GuildSettings
     /// Create a new, empty settings structure
     pub fn new() -> Self
     {
-        Self{Default::default()}
+        Self{guilds: Vec::new()}
     }
 
     /// Add a guild's settings
@@ -95,10 +90,23 @@ impl GuildSettings
         self
     }
 
-    /// Remove a guild's settings
-    pub fn remove_guild(&mut self, gid: GuildId) -> &mut Result<&mut Self, ()>
+    /// If found, returns the location of the guild
+    pub fn has_guild(&self, gid: &GuildId) -> (&Self, Option<usize>)
     {
-        if let Some(pos) = self.restricted_words.clone().iter().position(|g| g.gid == gid)
+        if let Some(pos) = self.guilds.clone().iter().position(|g| g.gid == *gid)
+        {
+            (self, Some(pos))
+        }
+        else
+        {
+            (self, None)
+        }
+    }
+
+    /// Remove a guild's settings
+    pub fn remove_guild(&mut self, gid: GuildId) -> Result<&mut Self, ()>
+    {
+        if let Some(pos) = self.guilds.clone().iter().position(|g| g.gid == gid)
         {
             self.guilds.remove(pos);
             Ok(self)
@@ -112,9 +120,9 @@ impl GuildSettings
     /// Load the settings from disk
     pub fn load(path:PathBuf) -> Result<Self, Error>
     {
-        let contents = match read_to_string(path)?;
+        let contents = read_to_string(path)?;
         
-        let config: Config = match serde_json::from_str(&contents)
+        let settings: GuildSettings = match serde_json::from_str(&contents)
         {
             Ok(x)=>x,
             Err(x) => {
@@ -123,11 +131,11 @@ impl GuildSettings
             }
         };
 
-        Ok(config)
+        Ok(settings)
     }
 
     /// Save the settings to disk
-    pub fn save(&self, path: PathBuf) -> Result<(), Error>
+    pub fn save(&self, path: PathBuf) -> Result<&Self, Error>
     {
         // If there's a parent to this path, ensure it exists
         if let Some(parent) = path.parent()
@@ -141,7 +149,7 @@ impl GuildSettings
         let serialized = serde_json::to_string(&self).unwrap();
         fs::write(path, serialized)?;
 
-        Ok(())
+        Ok(self)
     }
 
 }
@@ -151,11 +159,11 @@ impl Settings
     /// Create a new Settings structure
     pub fn new() -> Self
     {
-        Self{Default::default()}
+        Self { ..Default::default() }
     }
 
     /// Set the setting's log channel
-    pub fn set_log_channel(&mut self, c: Channel) -> &mut Self
+    pub fn set_log_channel(&mut self, c: PartialChannel) -> &mut Self
     {
         self.log_channel = Some(c);
         self
@@ -178,7 +186,7 @@ impl Settings
     /// Remove a restricted word
     pub fn remove_restricted_word(&mut self, word: String) -> Result<&mut Self, ()>
     {
-        if let Some(pos) = self.restricted_words.clone().iter().position(|s| s == word)
+        if let Some(pos) = self.restricted_words.clone().iter().position(|s| *s == word)
         {
             self.restricted_words.remove(pos);
             Ok(self)
@@ -208,24 +216,39 @@ strike! {
             pub token: String
         },
 
-        pub resources: pub struct
+        pub resources: pub struct Resources
         {
-            #[serde(default = "/etc/leb/restricted_words.json")]
+            #[serde(default = "_d_restricted_words")]
             pub restricted_words: PathBuf,
             
-            #[serde(default = "/var/local/leb/warnings.json")]
+            #[serde(default = "_d_warnings")]
             pub warnings: PathBuf,
 
-            #[serde(default = "/var/local/leb/guild_settings.json")]
+            #[serde(default = "_d_guild_settings" )]
             pub guild_settings: PathBuf,
-        }
+        },
         
     }
 }
 
+fn _d_restricted_words() -> PathBuf
+{
+    PathBuf::from("/etc/leb/restricted_words.json")
+}
+
+fn _d_warnings() -> PathBuf
+{
+    PathBuf::from("/var/local/leb/warnings.json")
+}
+
+fn _d_guild_settings() -> PathBuf
+{
+    PathBuf::from("/var/local/leb/guild_settings.json")
+}
+
 impl Config {
     pub fn from(path: PathBuf) -> Result<Self, Error> {
-        let contents = match read_to_string(path)?;
+        let contents = read_to_string(path)?;
         
         let config: Config = match toml::from_str(&contents)
         {

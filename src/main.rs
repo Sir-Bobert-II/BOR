@@ -1,11 +1,9 @@
 mod builtins;
 mod commands;
 mod config;
-mod error;
 mod filtering;
 
 use config::{Config, RestrictedWords};
-use error::Error;
 use lazy_static::lazy_static;
 
 use env_logger;
@@ -41,7 +39,7 @@ lazy_static! {
 }
 
 #[tokio::main]
-async fn main() -> Result<(), Error>
+async fn main() -> Result<(), std::io::Error>
 {
 
     env_logger::init();
@@ -107,10 +105,13 @@ impl EventHandler for Handler
                 .create_application_command(|command| builtins::users::warn::register_warn(command))
                 .create_application_command(|command| builtins::users::warn::register_get_warns(command))
                 .create_application_command(|command| builtins::users::warn::register_remove_warns(command))
+                .create_application_command(|command| builtins::users::timeout::register_timeout(command))
+                .create_application_command(|command| builtins::users::timeout::register_realease(command))
                 .create_application_command(|command| builtins::meta::register(command))
+                .create_application_command(|command| builtins::settings::register(command))
         })  
         .await
         .unwrap();
-        info!("Commands stetp")
+        info!("Commands Initialized")
     }
 }
