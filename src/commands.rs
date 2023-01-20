@@ -6,7 +6,6 @@ use serenity::{
             application_command::{ApplicationCommandInteraction, CommandDataOptionValue},
             InteractionResponseType,
         },
-        Channel,
     },
     prelude::Context,
 };

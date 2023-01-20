@@ -1,11 +1,11 @@
-use std::sync::{Mutex};
+use std::sync::Mutex;
 
 use crate::config::{self, GuildSettings};
 use crate::CONFIG;
 use lazy_static::lazy_static;
 use serenity::builder::CreateApplicationCommand;
 use serenity::model::prelude::command::CommandOptionType;
-use serenity::model::prelude::{Channel, GuildId, PartialChannel};
+use serenity::model::prelude::{GuildId, PartialChannel};
 use serenity::model::Permissions;
 
 lazy_static! {
@@ -34,7 +34,6 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
                 .name("set_log")
                 .kind(CommandOptionType::SubCommand)
                 .description("Set the channel for logging")
-                
                 .create_sub_option(|opt| {
                     opt.name("channel")
                         .description("The channel to add")

@@ -41,7 +41,6 @@ lazy_static! {
 #[tokio::main]
 async fn main() -> Result<(), std::io::Error>
 {
-
     env_logger::init();
     info!("Initialized Logger");
 
@@ -78,7 +77,8 @@ impl EventHandler for Handler
     async fn message(&self, context: Context, msg: Message)
     {
         // Check for restricted words and remove them
-        if !msg.is_private() && filtering::is_restricted(msg.content.clone(), &RESTRICTED_WORDS.words)
+        if !msg.is_private()
+            && filtering::is_restricted(msg.content.clone(), &RESTRICTED_WORDS.words)
         {
             if let Err(why) = msg.delete(&context.http).await
             {
@@ -103,13 +103,21 @@ impl EventHandler for Handler
                 .create_application_command(|command| builtins::users::kick::register(command))
                 .create_application_command(|command| builtins::users::ban::register(command))
                 .create_application_command(|command| builtins::users::warn::register_warn(command))
-                .create_application_command(|command| builtins::users::warn::register_get_warns(command))
-                .create_application_command(|command| builtins::users::warn::register_remove_warns(command))
-                .create_application_command(|command| builtins::users::timeout::register_timeout(command))
-                .create_application_command(|command| builtins::users::timeout::register_realease(command))
+                .create_application_command(|command| {
+                    builtins::users::warn::register_get_warns(command)
+                })
+                .create_application_command(|command| {
+                    builtins::users::warn::register_remove_warns(command)
+                })
+                .create_application_command(|command| {
+                    builtins::users::timeout::register_timeout(command)
+                })
+                .create_application_command(|command| {
+                    builtins::users::timeout::register_realease(command)
+                })
                 .create_application_command(|command| builtins::meta::register(command))
                 .create_application_command(|command| builtins::settings::register(command))
-        })  
+        })
         .await
         .unwrap();
         info!("Commands Initialized")
