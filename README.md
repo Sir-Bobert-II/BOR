@@ -85,7 +85,7 @@ To make the bot run on system startup we can enable the service.
 sudo systemctl enable --now leb.service # Enable service
 ```
 
-This installs, enables, and starts LEB. To read logs and see that status of LEB use systemd's
+This enables and starts LEB. To read logs and see the status of LEB use systemd's
 `status`:
 
 ```sh
