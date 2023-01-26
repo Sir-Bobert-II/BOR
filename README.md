@@ -19,11 +19,13 @@ The bot currently only support Linux.
 
 ### Commmands
 
-* `kick` -- Kick a user
-* `ban` -- Ban a user
-* `warn` -- Warn a user
-* `get_warns` -- Get all warnings for a user
-* `remove_warns` -- Remove all warnings for a user
+* `kick` -- Kick a member
+* `ban` -- Ban a member
+* `warn` -- Warn a member
+* `get_warns` -- Get all warnings for a member
+* `remove_warns` -- Remove all warnings for a member
+* `timeout` -- Timeout a member
+* `release` -- End a member's timeout
 
 ## Compiling
 
