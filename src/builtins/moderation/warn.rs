@@ -1,4 +1,4 @@
-use crate::CONFIG;
+use crate::{CONFIG, config};
 use leb_warn::warnings::*;
 use serenity::{
     builder::CreateApplicationCommand,
@@ -27,15 +27,63 @@ lazy_static::lazy_static! {
         }
     };
     
+    static ref GUILD_SETTINGS_FILE: PathBuf = CONFIG.resources.guild_settings.clone();
+    static ref GUILD_SETTINGS: Mutex<config::GuildSettings> = {
+        
+        Mutex::new(
+            if !GUILD_SETTINGS_FILE.exists()
+            {
+                let settings = GuildSettings::new();
+                settings.save(GUILD_SETTINGS_FILE.to_path_buf()).unwrap();
+                settnigs
+            }
+            else
+            {
+                GuildSettings::load(&WARNINGS_FILE).unwrap()
+            }
+        )
+        
+    }
 }
 
-pub fn warn(gid: &GuildId, user: User, reason: String) -> String
+pub fn warn(context: &Context gid: &GuildId, user: User, reason: String) -> String
 {
     let uname = user.name.clone();
+    let warning_behavior = {
+        if let (gs, Some(i)) =  GUILD_SETTINGS.lock().unwrap().has_guild()
+        {
+            gs.guilds[i].settings.warning_behavior
+        }
+        else
+        {
+            -1
+        }
+    };
+
+    let count =
     WARNINGS
         .lock()
         .unwrap()
         .add_warning(&gid, user, reason.clone());
+        .count_warnings(&gid, user);
+
+    match warning_behavior
+    {
+        WarnBehavior::Ban(t) => {
+            /// Ban the user if we're at the warning limit
+            if count >= t
+            {
+                super::ban::run(
+                    context,
+                    gid,
+                    &user,
+                    reason: format!("Banned for accumulating {count} warnings."),
+                    0,
+                );
+            }
+        }
+    }
+
     // Save the changes
     WARNINGS
         .lock()

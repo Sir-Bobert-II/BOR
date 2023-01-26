@@ -49,6 +49,8 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
         })
 }
 
+// pub fn set_warning_behavior()
+
 pub struct Log {}
 
 impl Log
