@@ -100,21 +100,7 @@ impl EventHandler for Handler
         info!("{} is connected!", ready.user.name);
         Command::set_global_application_commands(&context.http, |commands| {
             commands
-                .create_application_command(|command| builtins::users::kick::register(command))
-                .create_application_command(|command| builtins::users::ban::register(command))
-                .create_application_command(|command| builtins::users::warn::register_warn(command))
-                .create_application_command(|command| {
-                    builtins::users::warn::register_get_warns(command)
-                })
-                .create_application_command(|command| {
-                    builtins::users::warn::register_remove_warns(command)
-                })
-                .create_application_command(|command| {
-                    builtins::users::timeout::register_timeout(command)
-                })
-                .create_application_command(|command| {
-                    builtins::users::timeout::register_realease(command)
-                })
+                .create_application_command(|command| builtins::moderation::register(command))
                 .create_application_command(|command| builtins::meta::register(command))
                 .create_application_command(|command| builtins::settings::register(command))
         })

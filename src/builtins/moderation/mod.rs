@@ -1,3 +1,5 @@
+//! Moderation functions for guilds to moderate members. Not available in DM's
+
 use serenity::{
     model::prelude::{GuildId, Member, UserId},
     prelude::Context,
@@ -40,7 +42,7 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
                         .kind(CommandOptionType::String)
                         .required(false)
                 })
-                .create_sub_option(|option| {
+                .create_sub_option(|opt| {
                     opt
                         .name("days")
                         .description("The number of days of messages to delete (Max: 7)")
@@ -102,35 +104,35 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
                 .name("timeout")
                 .description("Give a member a timeout")
                 .kind(CommandOptionType::SubCommand)
-                .create_option(|option| {
+                .create_sub_option(|option| {
                     option
                         .name("user")
                         .description("The user to timeout")
                         .kind(CommandOptionType::User)
                         .required(true)
                 })
-                .create_option(|option| {
+                .create_sub_option(|option| {
                     option
                         .name("days")
                         .description("The number of days to timeout for")
                         .kind(CommandOptionType::Integer)
                         .required(false)
                 })
-                .create_option(|option| {
+                .create_sub_option(|option| {
                     option
                         .name("hours")
                         .description("The number of hours to timeout for")
                         .kind(CommandOptionType::Integer)
                         .required(false)
                 })
-                .create_option(|option| {
+                .create_sub_option(|option| {
                     option
                         .name("minutes")
                         .description("The number of minutes to timeout for")
                         .kind(CommandOptionType::Integer)
                         .required(false)
                 })
-                .create_option(|option| {
+                .create_sub_option(|option| {
                     option
                         .name("seconds")
                         .description("The number of seconds to timeout for")
@@ -138,5 +140,19 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
                         .required(false)
                 })
         })
+        .create_option(|option|)
+        {
+            option
+                .name("release")
+                .description("Release a member from their timeout")
+                .kind(CommandOptionType::SubCommand)
+                .create_sub_option(|option| {
+                    option
+                        .name("user")
+                        .description("The user to release")
+                        .kind(CommandOptionType::User)
+                        .required(true)
+                })
+        }
         
 }

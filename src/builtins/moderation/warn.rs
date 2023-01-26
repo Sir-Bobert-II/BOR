@@ -26,6 +26,7 @@ lazy_static::lazy_static! {
             Mutex::new(Warnings::load(&WARNINGS_FILE).unwrap())
         }
     };
+    
 }
 
 pub fn warn(gid: &GuildId, user: User, reason: String) -> String

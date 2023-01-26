@@ -9,23 +9,39 @@ The bot currently only support Linux.
 ## Features
 
 * [ ] Warning system
-  * [ ] Track warnings
+  * [x] Track warnings
     * [x] Store warnings on disk
   * [ ] Manage warnings
     * [x] Add warnings
     * [x] Remove warnings
-    * [ ] Automatically add new warnings
-    * [ ] Automatically remove old warnings
+    * [ ] Automation
+      * [ ] Create new warnings
+      * [ ] Remove old warnings
+      * [ ] Perform configured adminstrative action
+* [ ] Logging
+  * [ ] Logging restricted word matches
+  * [ ] Logging admistriative action
+    * [ ] Bans
+    * [ ] Kicks
+    * [ ] Warnings
+    * [ ] Timeout
 
 ### Commmands
 
-* `kick` -- Kick a member
-* `ban` -- Ban a member
-* `warn` -- Warn a member
-* `get_warns` -- Get all warnings for a member
-* `remove_warns` -- Remove all warnings for a member
-* `timeout` -- Timeout a member
-* `release` -- End a member's timeout
+#### Moderation
+
+* `moderation kick` -- Kick a member
+* `moderation ban` -- Ban a member
+* `moderation warn` -- Warn a member
+* `moderation get_warnings` -- Get all warnings for a member
+* `moderation remove_warnings` -- Remove all warnings for a member
+* `moderation timeout` -- Timeout a member
+* `moderation release` -- End a member's timeout
+
+#### Configuration
+
+* `settings set_log` -- Set the channel to log bot messages to
+* `settings remove_log` -- Remove the logging channel from the bot (Disables logging).
 
 ## Compiling
 

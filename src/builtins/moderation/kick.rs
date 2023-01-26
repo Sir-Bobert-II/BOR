@@ -26,26 +26,3 @@ pub async fn run(context: &Context, gid: &GuildId, user: &User, reason: String) 
         }
     }
 }
-
-pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicationCommand
-{
-    command
-        .name("exile")
-        .description("Kick a member from this guild")
-        .dm_permission(false)
-        .default_member_permissions(Permissions::KICK_MEMBERS)
-        .create_option(|option| {
-            option
-                .name("user")
-                .description("The user to kick")
-                .kind(CommandOptionType::User)
-                .required(true)
-        })
-        .create_option(|option| {
-            option
-                .name("reason")
-                .description("The reason why you're kicking this user")
-                .kind(CommandOptionType::String)
-                .required(false)
-        })
-}

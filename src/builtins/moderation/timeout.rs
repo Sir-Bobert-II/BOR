@@ -101,52 +101,6 @@ pub async fn release(context: &Context, gid: &GuildId, user: User) -> String
     }
 }
 
-pub fn register_timeout(command: &mut CreateApplicationCommand)
-    -> &mut CreateApplicationCommand
-{
-    command
-        .name("timeout")
-        .description("Give a member a timeout")
-        .dm_permission(false)
-        .default_member_permissions(Permissions::MODERATE_MEMBERS)
-        .create_option(|option| {
-            option
-                .name("user")
-                .description("The user to timeout")
-                .kind(CommandOptionType::User)
-                .required(true)
-        })
-        .create_option(|option| {
-            option
-                .name("days")
-                .description("The number of days to timeout for")
-                .kind(CommandOptionType::Integer)
-                .required(false)
-        })
-        .create_option(|option| {
-            option
-                .name("hours")
-                .description("The number of hours to timeout for")
-                .kind(CommandOptionType::Integer)
-                .required(false)
-        })
-        .create_option(|option| {
-            option
-                .name("minutes")
-                .description("The number of minutes to timeout for")
-                .kind(CommandOptionType::Integer)
-                .required(false)
-        })
-        .create_option(|option| {
-            option
-                .name("seconds")
-                .description("The number of seconds to timeout for")
-                .kind(CommandOptionType::Integer)
-                .required(false)
-        })
-}
-    
-
 pub fn register_realease(
     command: &mut CreateApplicationCommand,
 ) -> &mut CreateApplicationCommand
