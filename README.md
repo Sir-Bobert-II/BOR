@@ -8,7 +8,14 @@ The bot currently only support Linux.
 
 ## Features
 
-* Warning system
+* [ ] Warning system
+  * [ ] Track warnings
+    * [x] Store warnings on disk
+  * [ ] Manage warnings
+    * [x] Add warnings
+    * [x] Remove warnings
+    * [ ] Automatically add new warnings
+    * [ ] Automatically remove old warnings
 
 ### Commmands
 
