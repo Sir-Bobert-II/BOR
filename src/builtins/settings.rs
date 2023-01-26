@@ -1,14 +1,19 @@
+use std::path::PathBuf;
 use std::sync::Mutex;
 
-use crate::config::{self, GuildSettings};
+use crate::config::{self, GuildSettings, WarnBehavior};
 use crate::CONFIG;
 use lazy_static::lazy_static;
-use serenity::builder::CreateApplicationCommand;
-use serenity::model::prelude::command::CommandOptionType;
-use serenity::model::prelude::{GuildId, PartialChannel};
-use serenity::model::Permissions;
+use serenity::{
+    builder::CreateApplicationCommand,
+    model::{
+        prelude::{command::CommandOptionType, GuildId, PartialChannel},
+        Permissions,
+    },
+};
 
 lazy_static! {
+    static ref SETTINGS_PATH: PathBuf = CONFIG.resources.guild_settings.clone();
     static ref SETTINGS: Mutex<GuildSettings> = Mutex::new({
         let path = CONFIG.resources.guild_settings.clone();
         if !path.exists()
@@ -47,9 +52,48 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
                 .kind(CommandOptionType::SubCommand)
                 .description("Stop using the current logging channel")
         })
+        .create_option(|option| {
+            option
+                .name("set_warn_behavior")
+                .kind(CommandOptionType::SubCommand)
+                .description("Set the action when a specified number of warnings is met")
+                .create_sub_option(|opt| {
+                    opt.name("behavior")
+                        .description("Nothing, Ban, Kick, Timeout")
+                        .kind(CommandOptionType::String)
+                        .required(true)
+                })
+                .create_sub_option(|opt| {
+                    opt.name("max")
+                        .description(
+                            "The number of warnings needed to take action (e.g. 3, 255) 255 Max",
+                        )
+                        .kind(CommandOptionType::Integer)
+                        .required(true)
+                })
+        })
 }
 
-// pub fn set_warning_behavior()
+pub fn set_warning_behavior(gid: &GuildId, w: WarnBehavior) -> String
+{
+    let (_, x) = SETTINGS.lock().unwrap().has_guild(gid);
+
+    if let Some(x) = x
+    {
+        SETTINGS.lock().unwrap().guilds[x]
+            .settings
+            .set_warning_behavior(w);
+    }
+    else
+    {
+        let s = config::Settings::new().set_warning_behavior(w).to_owned();
+
+        // Make a guild with the settings
+        SETTINGS.lock().unwrap().add_guild(*gid, s);
+    }
+
+    "".to_string()
+}
 
 pub struct Log {}
 
@@ -58,46 +102,51 @@ impl Log
     pub fn set_log(c: PartialChannel, gid: &GuildId) -> String
     {
         let cs = c.clone().name.unwrap();
-        let (_, x) = SETTINGS.lock().unwrap().has_guild(&gid);
+        let (_, x) = SETTINGS.lock().unwrap().has_guild(gid);
 
-        // If the guild exits
-        if x.is_some()
+        if let Some(x) = x
         {
-            SETTINGS.lock().unwrap().guilds[x.unwrap()]
+            SETTINGS.lock().unwrap().guilds[x]
                 .settings
                 .set_log_channel(c);
-            format!("Set log channel to {}", cs)
         }
-        // if it doesnt
         else
         {
             let s = config::Settings::new().set_log_channel(c).to_owned();
 
             // Make a guild with the settings
             SETTINGS.lock().unwrap().add_guild(*gid, s);
-            format!("Set log channel to {}", cs)
         }
+
+        SETTINGS
+            .lock()
+            .unwrap()
+            .save(SETTINGS_PATH.to_path_buf())
+            .unwrap();
+        format!("Set log channel to {cs}")
     }
 
-    pub fn remove_log(gid: &GuildId)
+    pub fn remove_log(gid: &GuildId) -> String
     {
-        let (_, x) = SETTINGS.lock().unwrap().has_guild(&gid);
+        let (_, x) = SETTINGS.lock().unwrap().has_guild(gid);
 
-        // If the guild exits
-        if x.is_some()
+        if let Some(x) = x
         {
-            SETTINGS.lock().unwrap().guilds[x.unwrap()]
-                .settings
-                .log_channel = None;
+            SETTINGS.lock().unwrap().guilds[x].settings.log_channel = None;
         }
-        // if it doesnt
         else
         {
-            let mut s = config::Settings::new().to_owned();
+            let mut s = config::Settings::new();
             s.log_channel = None;
 
             // Make a guild with the settings
             SETTINGS.lock().unwrap().add_guild(*gid, s);
         }
+        SETTINGS
+            .lock()
+            .unwrap()
+            .save(SETTINGS_PATH.to_path_buf())
+            .unwrap();
+        "Removed log channel".to_string()
     }
 }

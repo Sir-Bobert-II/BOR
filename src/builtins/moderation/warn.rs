@@ -1,12 +1,11 @@
-use crate::{CONFIG, config};
+use crate::{
+    config::{self, GuildSettings, WarnBehavior},
+    CONFIG,
+};
 use leb_warn::warnings::*;
 use serenity::{
-    builder::CreateApplicationCommand,
-    model::{
-        prelude::{command::CommandOptionType, GuildId},
-        user::User,
-        Permissions,
-    },
+    model::{prelude::GuildId, user::User},
+    prelude::Context,
 };
 
 use std::{path::PathBuf, sync::Mutex};
@@ -26,60 +25,87 @@ lazy_static::lazy_static! {
             Mutex::new(Warnings::load(&WARNINGS_FILE).unwrap())
         }
     };
-    
+
     static ref GUILD_SETTINGS_FILE: PathBuf = CONFIG.resources.guild_settings.clone();
     static ref GUILD_SETTINGS: Mutex<config::GuildSettings> = {
-        
+
         Mutex::new(
             if !GUILD_SETTINGS_FILE.exists()
             {
                 let settings = GuildSettings::new();
                 settings.save(GUILD_SETTINGS_FILE.to_path_buf()).unwrap();
-                settnigs
+                settings
             }
             else
             {
-                GuildSettings::load(&WARNINGS_FILE).unwrap()
+                GuildSettings::load(WARNINGS_FILE.to_path_buf()).unwrap()
             }
         )
-        
-    }
+
+    };
 }
 
-pub fn warn(context: &Context gid: &GuildId, user: User, reason: String) -> String
+pub async fn warn(context: &Context, gid: &GuildId, user: User, reason: String) -> String
 {
     let uname = user.name.clone();
     let warning_behavior = {
-        if let (gs, Some(i)) =  GUILD_SETTINGS.lock().unwrap().has_guild()
+        if let (gs, Some(i)) = GUILD_SETTINGS.lock().unwrap().has_guild(gid)
         {
             gs.guilds[i].settings.warning_behavior
         }
         else
         {
-            -1
+            WarnBehavior::Nothing
         }
     };
 
-    let count =
-    WARNINGS
+    let count = WARNINGS
         .lock()
         .unwrap()
-        .add_warning(&gid, user, reason.clone());
-        .count_warnings(&gid, user);
+        .add_warning(gid, &user, reason.clone())
+        .count_warnings(gid, &user);
 
     match warning_behavior
     {
-        WarnBehavior::Ban(t) => {
-            /// Ban the user if we're at the warning limit
-            if count >= t
+        WarnBehavior::Ban(cap) =>
+        {
+            // Ban the user if we're at the warning limit
+            if count >= cap.into()
             {
                 super::ban::run(
                     context,
                     gid,
                     &user,
-                    reason: format!("Banned for accumulating {count} warnings."),
+                    format!("Banned for accumulating {count} warnings."),
                     0,
-                );
+                )
+                .await;
+            }
+        }
+        WarnBehavior::Nothing => (),
+        WarnBehavior::Kick(cap) =>
+        {
+            // Ban the user if we're at the warning limit
+            if count >= cap.into()
+            {
+                super::kick::run(
+                    context,
+                    gid,
+                    &user,
+                    format!("Banned for accumulating {count} warnings."),
+                )
+                .await;
+            }
+        }
+        WarnBehavior::Timeout {
+            warning_count,
+            duration,
+        } =>
+        {
+            // Ban the user if we're at the warning limit
+            if count >= warning_count.into()
+            {
+                super::timeout::timeout(context, gid, user, duration, true).await;
             }
         }
     }
@@ -88,7 +114,7 @@ pub fn warn(context: &Context gid: &GuildId, user: User, reason: String) -> Stri
     WARNINGS
         .lock()
         .unwrap()
-        .save((&WARNINGS_FILE).to_path_buf())
+        .save(WARNINGS_FILE.to_path_buf())
         .unwrap();
     format!("Warned {uname} for {reason}.")
 }
@@ -123,7 +149,7 @@ pub fn remove_warns(gid: &GuildId, user: User) -> String
     WARNINGS
         .lock()
         .unwrap()
-        .save((&WARNINGS_FILE).to_path_buf())
+        .save(WARNINGS_FILE.to_path_buf())
         .unwrap();
     format!("Removed all warnings for user {}", user.name)
 }
@@ -131,12 +157,12 @@ pub fn remove_warns(gid: &GuildId, user: User) -> String
 pub fn get_warns(gid: &GuildId, user: User) -> String
 {
     let uname = user.name.clone();
-    if let Some(warnings) = WARNINGS.lock().unwrap().get_warnings(*gid, user).clone()
+    if let Some(warnings) = WARNINGS.lock().unwrap().get_warnings(*gid, user)
     {
         warnings.to_string()
     }
     else
     {
-        format!("User {} has no warnings on record.", uname)
+        format!("User {uname} has no warnings on record.")
     }
 }

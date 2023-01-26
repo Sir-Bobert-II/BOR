@@ -6,18 +6,15 @@ mod filtering;
 use config::{Config, RestrictedWords};
 use lazy_static::lazy_static;
 
-use env_logger;
 use log::{error, info};
 use serenity::{
     async_trait,
     model::{
         application::interaction::Interaction,
-        channel::Message,
         gateway::Ready,
         prelude::{command::Command, *},
     },
     prelude::*,
-    utils::MessageBuilder,
 };
 use std::path::PathBuf;
 const CONFIG_FILE: &str = "/etc/leb/config.toml";
@@ -31,11 +28,8 @@ lazy_static! {
         ))
     };
     static ref CONFIG: config::Config = Config::from(CONFIG_FILE.into()).unwrap();
-    static ref RESTRICTED_WORDS: config::RestrictedWords = {
-        let restricted_words =
-            RestrictedWords::from(CONFIG.resources.restricted_words.clone()).unwrap();
-        restricted_words
-    };
+    static ref RESTRICTED_WORDS: config::RestrictedWords =
+        RestrictedWords::from(CONFIG.resources.restricted_words.clone()).unwrap();
 }
 
 #[tokio::main]
@@ -49,7 +43,7 @@ async fn main() -> Result<(), std::io::Error>
         | GatewayIntents::DIRECT_MESSAGES
         | GatewayIntents::MESSAGE_CONTENT;
 
-    let mut client = Client::builder(&token, intents)
+    let mut client = Client::builder(token, intents)
         .event_handler(Handler)
         .await
         .expect("Err creating client");
@@ -74,26 +68,26 @@ impl EventHandler for Handler
         }
     }
 
-    async fn message(&self, context: Context, msg: Message)
-    {
-        // Check for restricted words and remove them
-        if !msg.is_private()
-            && filtering::is_restricted(msg.content.clone(), &RESTRICTED_WORDS.words)
-        {
-            if let Err(why) = msg.delete(&context.http).await
-            {
-                error!("Error removing message: {:?}", why);
-            }
-            let response = MessageBuilder::new()
-                .mention(&msg.author)
-                .push("Used a restricted word!")
-                .build();
-            if let Err(why) = msg.channel_id.say(&context.http, &response).await
-            {
-                error!("Error sending message: {:?}", why);
-            }
-        }
-    }
+    // async fn message(&self, context: Context, msg: Message)
+    // {
+    //     // Check for restricted words and remove them
+    //     if !msg.is_private()
+    //         && filtering::is_restricted(msg.content.clone(), &RESTRICTED_WORDS.words)
+    //     {
+    //         if let Err(why) = msg.delete(&context.http).await
+    //         {
+    //             error!("Error removing message: {:?}", why);
+    //         }
+    //         let response = MessageBuilder::new()
+    //             .mention(&msg.author)
+    //             .push("Used a restricted word!")
+    //             .build();
+    //         if let Err(why) = msg.channel_id.say(&context.http, &response).await
+    //         {
+    //             error!("Error sending message: {:?}", why);
+    //         }
+    //     }
+    // }
 
     async fn ready(&self, context: Context, ready: Ready)
     {

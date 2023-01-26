@@ -17,7 +17,7 @@ The bot currently only support Linux.
     * [ ] Automation
       * [ ] Create new warnings
       * [ ] Remove old warnings
-      * [ ] Perform configured adminstrative action
+      * [x] Perform configured adminstrative action
 * [ ] Logging
   * [ ] Logging restricted word matches
   * [ ] Logging admistriative action
@@ -25,6 +25,7 @@ The bot currently only support Linux.
     * [ ] Kicks
     * [ ] Warnings
     * [ ] Timeout
+* [ ] Hosted web configuration interface
 
 ### Commmands
 

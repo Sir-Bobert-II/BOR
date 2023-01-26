@@ -48,6 +48,7 @@ strike! {
 
                 /// How to behave when a warning limit is reached
                 pub warning_behavior:
+                #[derive(Copy)]
                 pub enum WarnBehavior{
 
                     /// Do nothing, no warning limit.
@@ -67,7 +68,7 @@ strike! {
                         warning_count: u8,
 
                         /// How long to timeout for
-                        duration: crate::builtins::users::timeout::TimeoutTime,
+                        duration: crate::builtins::moderation::timeout::TimeoutTime,
                     },
                 },
             }
@@ -124,7 +125,7 @@ impl GuildSettings
             Ok(x) => x,
             Err(x) =>
             {
-                println!("{}", contents);
+                println!("{contents}");
                 return Err(Error::new(ErrorKind::Other, x.to_string()));
             }
         };
@@ -250,7 +251,7 @@ impl Config
             Ok(x) => x,
             Err(x) =>
             {
-                println!("{}", contents);
+                println!("{contents}");
                 return Err(Error::new(ErrorKind::Other, x.to_string()));
             }
         };

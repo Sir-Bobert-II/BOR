@@ -1,7 +1,11 @@
 //! Moderation functions for guilds to moderate members. Not available in DM's
 
 use serenity::{
-    model::prelude::{GuildId, Member, UserId},
+    builder::CreateApplicationCommand,
+    model::{
+        prelude::{command::CommandOptionType, GuildId, Member, UserId},
+        Permissions,
+    },
     prelude::Context,
 };
 
@@ -11,10 +15,10 @@ pub async fn member_from_id(context: &Context, gid: GuildId, id: UserId) -> Memb
     gid.member(&context.http, id).await.unwrap()
 }
 
-pub mod kick;
 pub mod ban;
-pub mod warn;
+pub mod kick;
 pub mod timeout;
+pub mod warn;
 
 pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicationCommand
 {
@@ -29,22 +33,19 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
                 .kind(CommandOptionType::SubCommand)
                 .description("Ban a member from this guild")
                 .create_sub_option(|opt| {
-                    opt
-                        .name("user")
+                    opt.name("user")
                         .description("The user to ban")
                         .kind(CommandOptionType::User)
                         .required(true)
                 })
                 .create_sub_option(|opt| {
-                    opt
-                        .name("reason")
+                    opt.name("reason")
                         .description("The reason why you're banning this user")
                         .kind(CommandOptionType::String)
                         .required(false)
                 })
                 .create_sub_option(|opt| {
-                    opt
-                        .name("days")
+                    opt.name("days")
                         .description("The number of days of messages to delete (Max: 7)")
                         .kind(CommandOptionType::Integer)
                         .required(false)
@@ -70,8 +71,7 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
                         .required(false)
                 })
         })
-        .create_option(|option|
-        {
+        .create_option(|option| {
             option
                 .name("get_warnings")
                 .description("Get all the warnings for a member")
@@ -84,8 +84,7 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
                         .required(true)
                 })
         })
-        .create_option(|option|
-        {
+        .create_option(|option| {
             option
                 .name("remove_warnings")
                 .kind(CommandOptionType::SubCommand)
@@ -98,8 +97,7 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
                         .required(true)
                 })
         })
-        .create_option(|option|
-        {
+        .create_option(|option| {
             option
                 .name("timeout")
                 .description("Give a member a timeout")
@@ -140,8 +138,7 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
                         .required(false)
                 })
         })
-        .create_option(|option|)
-        {
+        .create_option(|option| {
             option
                 .name("release")
                 .description("Release a member from their timeout")
@@ -153,6 +150,5 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
                         .kind(CommandOptionType::User)
                         .required(true)
                 })
-        }
-        
+        })
 }

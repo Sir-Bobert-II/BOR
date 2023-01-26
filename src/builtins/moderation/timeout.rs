@@ -1,20 +1,16 @@
 use chrono::{Duration, Utc};
 use serde::{Deserialize, Serialize};
 use serenity::{
-    builder::CreateApplicationCommand,
     model::{
-        prelude::{command::CommandOptionType, GuildId, User},
+        prelude::{GuildId, User},
         timestamp::Timestamp,
-        Permissions,
     },
     prelude::Context,
 };
 
 use super::member_from_id;
 
-#[derive(
-    PartialEq, Eq, PartialOrd, Ord, Debug, Default, Clone, Copy, Deserialize, Serialize,
-)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Debug, Default, Clone, Copy, Deserialize, Serialize)]
 pub struct TimeoutTime
 {
     pub seconds: Option<i64>,
@@ -27,13 +23,10 @@ impl TimeoutTime
 {
     pub fn is_none(&self) -> bool
     {
-        if self.seconds.is_none() && self.minutes.is_none() && self.hours.is_none() && self.days.is_none()
-        {
-            true
-        }
-        else {
-            false
-        }
+        self.seconds.is_none()
+            && self.minutes.is_none()
+            && self.hours.is_none()
+            && self.days.is_none()
     }
 }
 
@@ -68,7 +61,7 @@ pub async fn timeout(
     auto: bool,
 ) -> Option<String>
 {
-    let mut member = member_from_id(&context, *gid, user.id).await;
+    let mut member = member_from_id(context, *gid, user.id).await;
     match member
         .disable_communication_until_datetime(&context.http, generate_ending_time(time))
         .await
@@ -87,10 +80,10 @@ pub async fn timeout(
         Err(x) => Some(format!("Error: {x}")),
     }
 }
-    
+
 pub async fn release(context: &Context, gid: &GuildId, user: User) -> String
 {
-    let mut member = member_from_id(&context, *gid, user.id).await;
+    let mut member = member_from_id(context, *gid, user.id).await;
     match member.enable_communication(&context.http).await
     {
         Ok(_) =>
@@ -99,22 +92,4 @@ pub async fn release(context: &Context, gid: &GuildId, user: User) -> String
         }
         Err(x) => format!("Error: {x}"),
     }
-}
-
-pub fn register_realease(
-    command: &mut CreateApplicationCommand,
-) -> &mut CreateApplicationCommand
-{
-    command
-        .name("release")
-        .description("Release a member from their timeout")
-        .dm_permission(false)
-        .default_member_permissions(Permissions::MODERATE_MEMBERS)
-        .create_option(|option| {
-            option
-                .name("user")
-                .description("The user to release")
-                .kind(CommandOptionType::User)
-                .required(true)
-        })
 }
