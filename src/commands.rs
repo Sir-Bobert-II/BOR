@@ -347,7 +347,6 @@ pub async fn run(context: Context, command: ApplicationCommandInteraction)
         "conversions" =>
         {
             let mut ret = "Failed".to_string();
-            let guild_id = command.guild_id.unwrap();
             for option in command.data.options.clone()
             {
                 match option.kind
