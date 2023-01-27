@@ -21,4 +21,9 @@ structstruck = "0.3.0"
 lazy_static = "1.4"
 log = "0.4.6"
 env_logger = "0.10.0"
+
+# Warning system
 leb_warn = { git = "https://github.com/El-Wumbus/LEB-Warn.git" }
+
+# Conversions
+leb_conversions = { git = "https://github.com/El-Wumbus/LEB-conversions" }

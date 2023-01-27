@@ -344,6 +344,78 @@ pub async fn run(context: Context, command: ApplicationCommandInteraction)
             ret
         }
 
+        "conversions" =>
+        {
+            let mut ret = "Failed".to_string();
+            let guild_id = command.guild_id.unwrap();
+            for option in command.data.options.clone()
+            {
+                match option.kind
+                {
+                    CommandOptionType::SubCommand => match &*option.name
+                    {
+                        "hours" =>
+                        {
+                            for opt in option.options
+                            {
+                                match &*opt.name
+                                {
+                                    "time" =>
+                                    {
+                                        if let CommandDataOptionValue::String(time) =
+                                            opt.resolved.unwrap()
+                                        {
+                                            ret = leb_conversions::time::run(time)
+                                        }
+                                    }
+                                    _ => unreachable!(),
+                                }
+                            }
+                        }
+
+                        "temperature" =>
+                        {
+                            let (mut value, mut target) = ("0f".to_string(), "nothing".to_string());
+                            for opt in option.options
+                            {
+                                match &*opt.name
+                                {
+                                    "value" =>
+                                    {
+                                        if let CommandDataOptionValue::String(s) =
+                                            opt.resolved.unwrap()
+                                        {
+                                            value = s;
+                                        }
+                                    }
+
+                                    "target" =>
+                                    {
+                                        if let CommandDataOptionValue::String(s) =
+                                            opt.resolved.unwrap()
+                                        {
+                                            // Ensure sane numbers
+                                            target = s;
+                                        }
+                                    }
+                                    _ => unreachable!(),
+                                }
+                            }
+                            let target = target.chars().into_iter().next().unwrap_or('f');
+                            ret = leb_conversions::temperature::run(value, target);
+                        }
+
+                        _ =>
+                        {
+                            ret = format!("{} Failed!", option.name);
+                        }
+                    },
+                    _ => unreachable!(),
+                }
+            }
+            ret
+        }
+
         "settings" =>
         {
             let mut ret = "Failed".to_string();

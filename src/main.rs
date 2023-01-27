@@ -97,6 +97,7 @@ impl EventHandler for Handler
                 .create_application_command(|command| builtins::moderation::register(command))
                 .create_application_command(|command| builtins::meta::register(command))
                 .create_application_command(|command| builtins::settings::register(command))
+                .create_application_command(|command| leb_conversions::register(command))
         })
         .await
         .unwrap();
