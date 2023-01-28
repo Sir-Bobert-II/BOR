@@ -243,11 +243,11 @@ strike! {
     }
 }
 
-fn _d_restricted_words() -> PathBuf { PathBuf::from("/etc/leb/restricted_words.json") }
+fn _d_restricted_words() -> PathBuf { PathBuf::from("/etc/bor/restricted_words.json") }
 
-fn _d_warnings() -> PathBuf { PathBuf::from("/var/local/leb/warnings.json") }
+fn _d_warnings() -> PathBuf { PathBuf::from("/var/local/bor/warnings.json") }
 
-fn _d_guild_settings() -> PathBuf { PathBuf::from("/var/local/leb/guild_settings.json") }
+fn _d_guild_settings() -> PathBuf { PathBuf::from("/var/local/bor/guild_settings.json") }
 
 impl Config
 {

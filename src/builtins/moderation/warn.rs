@@ -11,16 +11,16 @@ use serenity::{
 
 lazy_static::lazy_static! {
     static ref WARNINGS_FILE: PathBuf = CONFIG.resources.warnings.clone();
-    static ref WARNINGS:  Mutex<leb_warn::warnings::Warnings> = {
+    static ref WARNINGS:  Mutex<bor_warn::warnings::Warnings> = {
         if !WARNINGS_FILE.exists()
         {
-            let warnings = leb_warn::warnings::Warnings::new();
+            let warnings = bor_warn::warnings::Warnings::new();
             warnings.save(WARNINGS_FILE.to_path_buf()).unwrap();
             Mutex::new(warnings)
         }
         else
         {
-            Mutex::new(leb_warn::warnings::Warnings::load(&WARNINGS_FILE).unwrap())
+            Mutex::new(bor_warn::warnings::Warnings::load(&WARNINGS_FILE).unwrap())
         }
     };
 }

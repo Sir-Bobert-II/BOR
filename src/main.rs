@@ -3,9 +3,13 @@ mod commands;
 mod config;
 mod filtering;
 
+extern crate bor_conversions as conversions;
+extern crate bor_define as define;
+extern crate bor_warn as warn;
+extern crate bor_wiki as wiki;
+
 use config::{Config, RestrictedWords};
 use lazy_static::lazy_static;
-
 use log::{error, info};
 use serenity::{
     async_trait,
@@ -17,8 +21,9 @@ use serenity::{
     prelude::*,
 };
 use std::path::PathBuf;
-const CONFIG_FILE: &str = "/etc/leb/config.toml";
-const NAME: &str = "law_enforcement_bot";
+
+const CONFIG_FILE: &str = "/etc/bor/config.toml";
+const NAME: &str = "bot_of_retribution";
 
 lazy_static! {
     static ref LOGFILE: PathBuf = {
@@ -98,9 +103,9 @@ impl EventHandler for Handler
                 .create_application_command(|command| builtins::meta::register(command))
                 .create_application_command(|command| builtins::settings::register(command))
                 .create_application_command(|command| builtins::random::register(command))
-                .create_application_command(|command| leb_conversions::register(command))
-                .create_application_command(|command| leb_wiki::register(command))
-                .create_application_command(|command| leb_define::register(command))
+                .create_application_command(|command| conversions::register(command))
+                .create_application_command(|command| wiki::register(command))
+                .create_application_command(|command| define::register(command))
         })
         .await
         .unwrap();

@@ -10,6 +10,9 @@ use serenity::{
     prelude::Context,
 };
 
+
+
+
 use crate::{
     builtins::{self, meta, moderation},
     config::WarnBehavior,
@@ -47,7 +50,7 @@ pub async fn run(context: Context, command: ApplicationCommandInteraction)
                     {
                         if let CommandDataOptionValue::String(title) = option.resolved.unwrap()
                         {
-                            ret = leb_wiki::run(title, max).await;
+                            ret = wiki::run(title, max).await;
                         }
                     }
 
@@ -69,7 +72,7 @@ pub async fn run(context: Context, command: ApplicationCommandInteraction)
                     {
                         if let CommandDataOptionValue::String(word) = option.resolved.unwrap()
                         {
-                            ret = leb_define::run(&word).await;
+                            ret = define::run(&word).await;
                         }
                     }
 
@@ -422,7 +425,7 @@ pub async fn run(context: Context, command: ApplicationCommandInteraction)
                                         if let CommandDataOptionValue::String(time) =
                                             opt.resolved.unwrap()
                                         {
-                                            ret = leb_conversions::time::run(time)
+                                            ret = conversions::time::run(time)
                                         }
                                     }
                                     _ => unreachable!(),
@@ -459,7 +462,7 @@ pub async fn run(context: Context, command: ApplicationCommandInteraction)
                                 }
                             }
                             let target = target.chars().into_iter().next().unwrap_or('f');
-                            ret = leb_conversions::temperature::run(value, target);
+                            ret = conversions::temperature::run(value, target);
                         }
 
                         _ =>

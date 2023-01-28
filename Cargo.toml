@@ -1,11 +1,11 @@
 [package]
-name = "law_enforcement"
+name = "bot_of_retribution"
 version = "0.1.0"
 edition = "2021"
 authors = ["Decator <decator.c@proton.me>"]
 
 [[bin]]
-name = "leb"
+name = "bor"
 path = "src/main.rs"
 
 [dependencies]
@@ -15,21 +15,21 @@ chrono = "0.4"
 serde = "1.0"
 serde_derive = "1.0"
 serde_json = "1.0"
-toml = "0.5"
+toml = "0.7"
 structstruck = "0.3.0"
 lazy_static = "1.4"
 log = "0.4.6"
 env_logger = "0.10.0"
+rand = "0.8.5"
 
 # Warning system
-leb_warn = { git = "https://github.com/Sir-Bobert-II/LEB-Warn.git" }
+bor_warn = { git = "https://github.com/Sir-Bobert-II/BOR-Warn.git" }
 
 # Conversions
-leb_conversions = { git = "https://github.com/Sir-Bobert-II/LEB-conversions" }
+bor_conversions = { git = "https://github.com/Sir-Bobert-II/BOR-conversions" }
 
 # Wikipedia
-leb_wiki = {git = "https://github.com/Sir-Bobert-II/LEB-wiki"}
+bor_wiki = {git = "https://github.com/Sir-Bobert-II/BOR-wiki"}
 
 # Define words
-leb_define = {git = "https://github.com/Sir-Bobert-II/LEB-define.git"}
-rand = "0.8.5"
+bor_define = {git = "https://github.com/Sir-Bobert-II/BOR-define.git"}

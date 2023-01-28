@@ -1,14 +1,14 @@
-pkgname="leb-git"
-_pkgname="leb"
+pkgname="bor-git"
+_pkgname="bor"
 pkgver=0.2
 pkgrel=1
-pkgdesc="Law Enforcement Bot is a self-hostable dicord bot."
+pkgdesc="Bot of Retribution is a self-hostable dicord bot."
 arch=("x86_64")
-url="https://github.com/El-Wumbus/Law-Enforcement-Bot"
+url="https://github.com/Sir-Bobert-II/BOR"
 license=("APACHE")
-provides=("leb")
+provides=("bor")
 makedepends=("rust")
-source=($_pkgname::"git+"https://github.com/El-Wumbus/Law-Enforcement-Bot.git")
+source=( $_pkgname::"git+https://github.com/Sir-Bobert-II/BOR.git")
 sha256sums=("SKIP")
 
 pkgver() {
@@ -23,6 +23,6 @@ build() {
 
 package() {
   cd "$_pkgname"
-  install target/release/leb -Dm755 ${pkgdir}/usr/bin/leb
-  install installation/leb.serice -Dm754 ${pkgdir}/etc/systemd/system/leb.service 
+  install target/release/bor -Dm755 "${pkgdir}/usr/bin/bor"
+  install installation/bor.serice -Dm754 "${pkgdir}/etc/systemd/system/bor.service" 
 }

@@ -87,6 +87,76 @@ dependencies = [
 ]
 
 [[package]]
+name = "bor_conversions"
+version = "0.1.0"
+source = "git+https://github.com/Sir-Bobert-II/BOR-conversions#a4b1cb23e41741ecb4abe95d806b68c05ee90a74"
+dependencies = [
+ "serenity",
+]
+
+[[package]]
+name = "bor_define"
+version = "0.1.0"
+source = "git+https://github.com/Sir-Bobert-II/BOR-define.git#5f8a899d88ea5d940d1931d011828e3322882a58"
+dependencies = [
+ "log",
+ "reqwest",
+ "serde",
+ "serde_derive",
+ "serde_json",
+ "serenity",
+ "structstruck",
+ "tokio",
+]
+
+[[package]]
+name = "bor_warn"
+version = "0.2.0"
+source = "git+https://github.com/Sir-Bobert-II/BOR-Warn.git#ca41250e935ac478cb8021589ba0bc46f18fd031"
+dependencies = [
+ "chrono",
+ "serde",
+ "serde_derive",
+ "serde_json",
+ "serenity",
+ "structstruck",
+ "tokio",
+]
+
+[[package]]
+name = "bor_wiki"
+version = "0.1.0"
+source = "git+https://github.com/Sir-Bobert-II/BOR-wiki#f3eea0201030e597b3c0b9c8b92d2d7cfe8f90d6"
+dependencies = [
+ "serenity",
+ "tokio",
+ "truncrate",
+ "wikipedia_api",
+]
+
+[[package]]
+name = "bot_of_retribution"
+version = "0.1.0"
+dependencies = [
+ "bor_conversions",
+ "bor_define",
+ "bor_warn",
+ "bor_wiki",
+ "chrono",
+ "env_logger",
+ "lazy_static",
+ "log",
+ "rand",
+ "serde",
+ "serde_derive",
+ "serde_json",
+ "serenity",
+ "structstruck",
+ "tokio",
+ "toml",
+]
+
+[[package]]
 name = "bumpalo"
 version = "3.12.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -657,80 +727,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "law_enforcement"
-version = "0.1.0"
-dependencies = [
- "chrono",
- "env_logger",
- "lazy_static",
- "leb_conversions",
- "leb_define",
- "leb_warn",
- "leb_wiki",
- "log",
- "rand",
- "serde",
- "serde_derive",
- "serde_json",
- "serenity",
- "structstruck",
- "tokio",
- "toml",
-]
-
-[[package]]
 name = "lazy_static"
 version = "1.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e2abad23fbc42b3700f2f279844dc832adb2b2eb069b2df918f455c4e18cc646"
-
-[[package]]
-name = "leb_conversions"
-version = "0.1.0"
-source = "git+https://github.com/Sir-Bobert-II/LEB-conversions#2554b0b86949075f8f2c0c3e4096dbf99591bfd8"
-dependencies = [
- "serenity",
-]
-
-[[package]]
-name = "leb_define"
-version = "0.1.0"
-source = "git+https://github.com/Sir-Bobert-II/LEB-define.git#d76db5a9bb63acf43936f1652d0bb54eaac1f790"
-dependencies = [
- "log",
- "reqwest",
- "serde",
- "serde_derive",
- "serde_json",
- "serenity",
- "structstruck",
- "tokio",
-]
-
-[[package]]
-name = "leb_warn"
-version = "0.2.0"
-source = "git+https://github.com/Sir-Bobert-II/LEB-Warn.git#d714f8c96e2bb2cac3fe4f9a0498a6b9eb8c6384"
-dependencies = [
- "chrono",
- "serde",
- "serde_derive",
- "serde_json",
- "serenity",
- "structstruck",
- "tokio",
-]
-
-[[package]]
-name = "leb_wiki"
-version = "0.1.0"
-source = "git+https://github.com/Sir-Bobert-II/LEB-wiki#4c265ff9a00871cb5b54deca66bd3ed7104c9d61"
-dependencies = [
- "serenity",
- "tokio",
- "truncrate",
- "wikipedia_api",
-]
 
 [[package]]
 name = "libc"
@@ -831,6 +831,15 @@ dependencies = [
  "security-framework",
  "security-framework-sys",
  "tempfile",
+]
+
+[[package]]
+name = "nom8"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ae01545c9c7fc4486ab7debaf2aad7003ac19431791868fb2e8066df97fad2f8"
+dependencies = [
+ "memchr",
 ]
 
 [[package]]
@@ -1267,6 +1276,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "serde_spanned"
+version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2c68e921cef53841b8925c2abadd27c9b891d9613bdc43d6b823062866df38e8"
+dependencies = [
+ "serde",
+]
+
+[[package]]
 name = "serde_urlencoded"
 version = "0.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1544,11 +1562,36 @@ dependencies = [
 
 [[package]]
 name = "toml"
-version = "0.5.11"
+version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f4f7f0dd8d50a853a531c426359045b1998f04219d88799810762cd4ad314234"
+checksum = "2f560bc7fb3eb31f5eee1340c68a2160cad39605b7b9c9ec32045ddbdee13b85"
 dependencies = [
  "serde",
+ "serde_spanned",
+ "toml_datetime",
+ "toml_edit",
+]
+
+[[package]]
+name = "toml_datetime"
+version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "886f31a9b85b6182cabd4d8b07df3b451afcc216563748201490940d2a28ed36"
+dependencies = [
+ "serde",
+]
+
+[[package]]
+name = "toml_edit"
+version = "0.19.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "233d8716cdc5d20ec88a18a839edaf545edc71efa4a5ff700ef4a102c26cd8fa"
+dependencies = [
+ "indexmap",
+ "nom8",
+ "serde",
+ "serde_spanned",
+ "toml_datetime",
 ]
 
 [[package]]
