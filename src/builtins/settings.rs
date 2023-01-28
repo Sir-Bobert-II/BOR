@@ -14,7 +14,7 @@ use serenity::{
 
 lazy_static! {
     static ref SETTINGS_PATH: PathBuf = CONFIG.resources.guild_settings.clone();
-    static ref SETTINGS: Mutex<GuildSettings> = Mutex::new({
+    pub(crate) static ref SETTINGS: Mutex<GuildSettings> = Mutex::new({
         let path = CONFIG.resources.guild_settings.clone();
         if !path.exists()
         {
@@ -72,6 +72,18 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
                         .required(true)
                 })
         })
+        .create_option(|option| {
+            option
+                .name("set_wiki_limit")
+                .kind(CommandOptionType::SubCommand)
+                .description("The the maximum wiki summary output in characters")
+                .create_sub_option(|opt| {
+                    opt.name("limit")
+                        .description("The character limit")
+                        .kind(CommandOptionType::Integer)
+                        .required(true)
+                })
+        })
 }
 
 pub fn set_warning_behavior(gid: &GuildId, w: WarnBehavior) -> String
@@ -92,7 +104,30 @@ pub fn set_warning_behavior(gid: &GuildId, w: WarnBehavior) -> String
         SETTINGS.lock().unwrap().add_guild(*gid, s);
     }
 
-    "".to_string()
+    "Set warning behavior".to_string()
+}
+
+pub fn set_wiki_limit(gid: &GuildId, limit: usize) -> String
+{
+    let limit = limit.clamp(0, 1000);
+
+    let (_, x) = SETTINGS.lock().unwrap().has_guild(gid);
+
+    if let Some(x) = x
+    {
+        SETTINGS.lock().unwrap().guilds[x]
+            .settings
+            .set_wiki_limit(limit);
+    }
+    else
+    {
+        let s = config::Settings::new().set_wiki_limit(limit).to_owned();
+
+        // Make a guild with the settings
+        SETTINGS.lock().unwrap().add_guild(*gid, s);
+    }
+
+    format!("Set the wiki limit to {limit} characters")
 }
 
 pub struct Log {}

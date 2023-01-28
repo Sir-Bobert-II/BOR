@@ -26,3 +26,10 @@ leb_warn = { git = "https://github.com/El-Wumbus/LEB-Warn.git" }
 
 # Conversions
 leb_conversions = { git = "https://github.com/El-Wumbus/LEB-conversions" }
+
+# Wikipedia
+leb_wiki = {git = "https://github.com/El-Wumbus/LEB-wiki"}
+
+# Define words
+leb_define = {git = "https://github.com/El-Wumbus/LEB-define.git"}
+rand = "0.8.5"

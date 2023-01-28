@@ -8,6 +8,15 @@ The bot currently only support Linux.
 
 ## Features
 
+* [x] Manual moderation
+  * [x] kick
+  * [x] ban
+  * [x] warn
+  * [x] timeout
+
+* [x] Guild settings
+  * [x] Store guild settings on disk
+
 * [ ] Warning system
   * [x] Track warnings
     * [x] Store warnings on disk
@@ -43,9 +52,16 @@ The bot currently only support Linux.
 
 * `settings set_log` -- Set the channel to log bot messages to
 * `settings remove_log` -- Remove the logging channel from the bot (Disables logging)
+* `settings set_warn_behavior` -- Set the behavior for when a set max number of warnings is met
+* `settings set_wiki_limit` -- Set the maximum number of output characters for the `wiki` command
 
 #### Other
 
+* `meta` -- Information about the bot
+* `wiki` -- Search something on wikipedia
+* `define` -- Define an English word
+* `random coin` -- Flip a coin
+* `random roulette` -- Play Russian Roulette
 * `conversions hours` -- Convert between 24 hour and 12 hour time
 * `conversions temperature` -- Convert between Kelvin, Celsius, and Fahrenheit
 
@@ -116,8 +132,7 @@ To make the bot run on system startup we can enable the service.
 sudo systemctl enable --now leb.service # Enable service
 ```
 
-This enables and starts LEB. To read logs and see the status of LEB use systemd's
-`status`:
+This enables and starts LEB. To read logs and see the status of LEB use systemd's `status`:
 
 ```sh
 sudo systemctl status leb

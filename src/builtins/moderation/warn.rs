@@ -1,49 +1,31 @@
-use crate::{
-    config::{self, GuildSettings, WarnBehavior},
-    CONFIG,
-};
-use leb_warn::warnings::*;
+use std::{path::PathBuf, sync::Mutex};
+
+use crate::{config::WarnBehavior, CONFIG};
 use serenity::{
     model::{prelude::GuildId, user::User},
     prelude::Context,
 };
 
-use std::{path::PathBuf, sync::Mutex};
 // We use lazy statics that get initialized on first reference (at runtime).
 // We wrap the warning in a mutex for safe mutability
+
 lazy_static::lazy_static! {
     static ref WARNINGS_FILE: PathBuf = CONFIG.resources.warnings.clone();
-    static ref WARNINGS:  Mutex<Warnings> = {
+    static ref WARNINGS:  Mutex<leb_warn::warnings::Warnings> = {
         if !WARNINGS_FILE.exists()
         {
-            let warnings = Warnings::new();
+            let warnings = leb_warn::warnings::Warnings::new();
             warnings.save(WARNINGS_FILE.to_path_buf()).unwrap();
             Mutex::new(warnings)
         }
         else
         {
-            Mutex::new(Warnings::load(&WARNINGS_FILE).unwrap())
+            Mutex::new(leb_warn::warnings::Warnings::load(&WARNINGS_FILE).unwrap())
         }
     };
-
-    static ref GUILD_SETTINGS_FILE: PathBuf = CONFIG.resources.guild_settings.clone();
-    static ref GUILD_SETTINGS: Mutex<config::GuildSettings> = {
-
-        Mutex::new(
-            if !GUILD_SETTINGS_FILE.exists()
-            {
-                let settings = GuildSettings::new();
-                settings.save(GUILD_SETTINGS_FILE.to_path_buf()).unwrap();
-                settings
-            }
-            else
-            {
-                GuildSettings::load(WARNINGS_FILE.to_path_buf()).unwrap()
-            }
-        )
-
-    };
 }
+
+use crate::builtins::settings::SETTINGS as GUILD_SETTINGS;
 
 pub async fn warn(context: &Context, gid: &GuildId, user: User, reason: String) -> String
 {

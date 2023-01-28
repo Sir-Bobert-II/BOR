@@ -40,6 +40,9 @@ strike! {
             pub settings:
             pub struct Settings {
 
+                /// The maximum number of characters to return from the wiki command
+                pub wiki_limit: Option<usize>,
+
                 /// The channel to log events
                 pub log_channel: Option<PartialChannel>,
 
@@ -173,6 +176,12 @@ impl Settings
     pub fn set_restricted_words(&mut self, words: Vec<String>) -> &mut Self
     {
         self.restricted_words = words;
+        self
+    }
+
+    pub fn set_wiki_limit(&mut self, limit: usize) -> &mut Self
+    {
+        self.wiki_limit = Some(limit);
         self
     }
 

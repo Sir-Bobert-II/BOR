@@ -21,6 +21,64 @@ pub async fn run(context: Context, command: ApplicationCommandInteraction)
     {
         "meta" => meta::meta(),
 
+        "wiki" =>
+        {
+            let mut max = 600;
+            let mut ret = "FAILED".to_string();
+            if let Some(gid) = &command.guild_id
+            {
+                if let (gs, Some(i)) = crate::builtins::settings::SETTINGS
+                    .lock()
+                    .unwrap()
+                    .has_guild(gid)
+                {
+                    if let Some(m) = gs.guilds[i].settings.wiki_limit
+                    {
+                        max = m;
+                    }
+                }
+            }
+
+            for option in command.data.options.clone()
+            {
+                match &*option.name
+                {
+                    "title" =>
+                    {
+                        if let CommandDataOptionValue::String(title) = option.resolved.unwrap()
+                        {
+                            ret = leb_wiki::run(title, max).await;
+                        }
+                    }
+
+                    _ => unreachable!(),
+                }
+            }
+
+            ret
+        }
+
+        "define" =>
+        {
+            let mut ret = "FAILED".to_string();
+            for option in command.data.options.clone()
+            {
+                match &*option.name
+                {
+                    "word" =>
+                    {
+                        if let CommandDataOptionValue::String(word) = option.resolved.unwrap()
+                        {
+                            ret = leb_define::run(&word).await;
+                        }
+                    }
+
+                    _ => unreachable!(),
+                }
+            }
+
+            ret
+        }
         "moderation" =>
         {
             let mut ret = "Failed".to_string();
@@ -415,6 +473,36 @@ pub async fn run(context: Context, command: ApplicationCommandInteraction)
             ret
         }
 
+        "random" =>
+        {
+            let mut ret = "Failed".to_string();
+            for option in command.data.options.clone()
+            {
+                match option.kind
+                {
+                    CommandOptionType::SubCommand => match &*option.name
+                    {
+
+                        "coin" =>
+                        {
+                            ret = builtins::random::coin();
+                        }
+
+                        "roulette" =>
+                        {
+                            ret = builtins::random::roulette();
+                        }
+                        _ =>
+                        {
+                            ret = format!("{} Failed!", option.name);
+                        }
+                    },
+                    _ => unreachable!(),
+                }
+            }
+            ret
+        }
+
         "settings" =>
         {
             let mut ret = "Failed".to_string();
@@ -448,6 +536,28 @@ pub async fn run(context: Context, command: ApplicationCommandInteraction)
                             let guild_id = command.guild_id.unwrap();
                             builtins::settings::Log::remove_log(&guild_id);
                             ret = "Removed logging channel".to_string()
+                        }
+
+                        "set_wiki_limit" =>
+                        {
+                            let mut limit: usize = 600;
+                            for opt in option.options
+                            {
+                                match &*opt.name
+                                {
+                                    "limit" =>
+                                    {
+                                        if let CommandDataOptionValue::Integer(l) =
+                                            opt.resolved.unwrap()
+                                        {
+                                            limit = l as usize;
+                                        }
+                                    }
+                                    _ => unreachable!(),
+                                }
+                            }
+
+                            ret = builtins::settings::set_wiki_limit(&guild_id, limit);
                         }
 
                         "set_warn_behavior" =>
