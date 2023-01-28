@@ -42,7 +42,12 @@ The bot currently only support Linux.
 #### Configuration
 
 * `settings set_log` -- Set the channel to log bot messages to
-* `settings remove_log` -- Remove the logging channel from the bot (Disables logging).
+* `settings remove_log` -- Remove the logging channel from the bot (Disables logging)
+
+#### Other
+
+* `conversions hours` -- Convert between 24 hour and 12 hour time
+* `conversions temperature` -- Convert between Kelvin, Celsius, and Fahrenheit
 
 ## Compiling
 
