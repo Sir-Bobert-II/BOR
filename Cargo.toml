@@ -22,14 +22,14 @@ log = "0.4.6"
 env_logger = "0.10.0"
 
 # Warning system
-leb_warn = { git = "https://github.com/El-Wumbus/LEB-Warn.git" }
+leb_warn = { git = "https://github.com/Sir-Bobert-II/LEB-Warn.git" }
 
 # Conversions
-leb_conversions = { git = "https://github.com/El-Wumbus/LEB-conversions" }
+leb_conversions = { git = "https://github.com/Sir-Bobert-II/LEB-conversions" }
 
 # Wikipedia
-leb_wiki = {git = "https://github.com/El-Wumbus/LEB-wiki"}
+leb_wiki = {git = "https://github.com/Sir-Bobert-II/LEB-wiki"}
 
 # Define words
-leb_define = {git = "https://github.com/El-Wumbus/LEB-define.git"}
+leb_define = {git = "https://github.com/Sir-Bobert-II/LEB-define.git"}
 rand = "0.8.5"

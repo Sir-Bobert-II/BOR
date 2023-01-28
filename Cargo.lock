@@ -687,7 +687,7 @@ checksum = "e2abad23fbc42b3700f2f279844dc832adb2b2eb069b2df918f455c4e18cc646"
 [[package]]
 name = "leb_conversions"
 version = "0.1.0"
-source = "git+https://github.com/El-Wumbus/LEB-conversions#2554b0b86949075f8f2c0c3e4096dbf99591bfd8"
+source = "git+https://github.com/Sir-Bobert-II/LEB-conversions#2554b0b86949075f8f2c0c3e4096dbf99591bfd8"
 dependencies = [
  "serenity",
 ]
@@ -695,7 +695,7 @@ dependencies = [
 [[package]]
 name = "leb_define"
 version = "0.1.0"
-source = "git+https://github.com/El-Wumbus/LEB-define.git#d76db5a9bb63acf43936f1652d0bb54eaac1f790"
+source = "git+https://github.com/Sir-Bobert-II/LEB-define.git#d76db5a9bb63acf43936f1652d0bb54eaac1f790"
 dependencies = [
  "log",
  "reqwest",
@@ -710,7 +710,7 @@ dependencies = [
 [[package]]
 name = "leb_warn"
 version = "0.2.0"
-source = "git+https://github.com/El-Wumbus/LEB-Warn.git#d714f8c96e2bb2cac3fe4f9a0498a6b9eb8c6384"
+source = "git+https://github.com/Sir-Bobert-II/LEB-Warn.git#d714f8c96e2bb2cac3fe4f9a0498a6b9eb8c6384"
 dependencies = [
  "chrono",
  "serde",
@@ -724,7 +724,7 @@ dependencies = [
 [[package]]
 name = "leb_wiki"
 version = "0.1.0"
-source = "git+https://github.com/El-Wumbus/LEB-wiki#4c265ff9a00871cb5b54deca66bd3ed7104c9d61"
+source = "git+https://github.com/Sir-Bobert-II/LEB-wiki#4c265ff9a00871cb5b54deca66bd3ed7104c9d61"
 dependencies = [
  "serenity",
  "tokio",
