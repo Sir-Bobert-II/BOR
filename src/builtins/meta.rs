@@ -1,6 +1,6 @@
 use serenity::builder::CreateApplicationCommand;
 
-const SITE: &str = "https://github.com/El-Wumbus/Law-Enforcement-Bot";
+const SITE: &str = "https://github.com/Sir-Bobert-II/Law-Enforcement-Bot";
 const AUTHORS: [&str; 1] = ["Decator <decator.c@proton.me>"];
 
 pub fn meta() -> String
