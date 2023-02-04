@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 use log::error;
 use serenity::{
     model::prelude::{
@@ -47,7 +49,7 @@ pub async fn run(context: Context, command: ApplicationCommandInteraction)
                     {
                         if let CommandDataOptionValue::String(title) = option.resolved.unwrap()
                         {
-                            ret = wiki::run(title, max).await;
+                            ret = wiki::run(title, max);
                         }
                     }
 
@@ -458,8 +460,20 @@ pub async fn run(context: Context, command: ApplicationCommandInteraction)
                                     _ => unreachable!(),
                                 }
                             }
-                            let target = target.chars().into_iter().next().unwrap_or('f');
-                            ret = conversions::temperature::run(value, target);
+                            let target = target.trim().to_lowercase();
+                            ret = match conversions::temperature::Temperature::from_str(&value)
+                            {
+                                Ok(mut x) => match &*target
+                                {
+                                    "k" | "kel" | "kelvin" => x.as_kel(),
+                                    "c" | "cel" | "celsius" => x.as_cel(),
+                                    "f" | "fah" | "fahrenheit" => x.as_fah(),
+                                    _ => &mut x,
+                                }
+                                .to_string(),
+
+                                Err(e) => e.to_string(),
+                            };
                         }
 
                         _ =>
