@@ -1,9 +1,4 @@
-use serenity::{
-    builder::CreateApplicationCommand,
-    model::{
-        prelude::{command::CommandOptionType},
-    },
-};
+use serenity::{builder::CreateApplicationCommand, model::prelude::command::CommandOptionType};
 
 pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicationCommand
 {

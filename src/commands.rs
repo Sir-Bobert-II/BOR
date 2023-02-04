@@ -10,9 +10,6 @@ use serenity::{
     prelude::Context,
 };
 
-
-
-
 use crate::{
     builtins::{self, meta, moderation},
     config::WarnBehavior,
@@ -485,7 +482,6 @@ pub async fn run(context: Context, command: ApplicationCommandInteraction)
                 {
                     CommandOptionType::SubCommand => match &*option.name
                     {
-
                         "coin" =>
                         {
                             ret = builtins::random::coin();

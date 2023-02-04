@@ -105,7 +105,7 @@ impl GuildSettings
     }
 
     /// Remove a guild's settings
-    pub fn remove_guild(&mut self, gid: GuildId) -> Result<&mut Self, ()>
+    pub fn _remove_guild(&mut self, gid: GuildId) -> Result<&mut Self, ()>
     {
         if let Some(pos) = self.guilds.clone().iter().position(|g| g.gid == gid)
         {
@@ -173,7 +173,7 @@ impl Settings
     }
 
     /// Set the restricted words
-    pub fn set_restricted_words(&mut self, words: Vec<String>) -> &mut Self
+    pub fn _set_restricted_words(&mut self, words: Vec<String>) -> &mut Self
     {
         self.restricted_words = words;
         self
@@ -186,14 +186,14 @@ impl Settings
     }
 
     /// Append a restricted word
-    pub fn add_restricted_word(&mut self, word: String) -> &mut Self
+    pub fn _add_restricted_word(&mut self, word: String) -> &mut Self
     {
         self.restricted_words.push(word);
         self
     }
 
     /// Remove a restricted word
-    pub fn remove_restricted_word(&mut self, word: String) -> Result<&mut Self, ()>
+    pub fn _remove_restricted_word(&mut self, word: String) -> Result<&mut Self, ()>
     {
         if let Some(pos) = self
             .restricted_words
@@ -268,7 +268,7 @@ impl Config
         Ok(config)
     }
 
-    pub fn save(&self, path: PathBuf) -> Result<(), Error>
+    pub fn _save(&self, path: PathBuf) -> Result<(), Error>
     {
         // If there's a parent to this path, ensure it exists
         if let Some(parent) = path.parent()

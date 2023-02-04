@@ -8,7 +8,7 @@ url="https://github.com/Sir-Bobert-II/BOR"
 license=("APACHE")
 provides=("bor")
 makedepends=("rust")
-source=( $_pkgname::"git+https://github.com/Sir-Bobert-II/BOR.git")
+source=( "$_pkgname::git+https://github.com/Sir-Bobert-II/BOR.git")
 sha256sums=("SKIP")
 
 pkgver() {
