@@ -36,6 +36,31 @@ pub async fn run(context: Context, command: ApplicationCommandInteraction)
     {
         "meta" => meta::meta(),
 
+        "quote" =>
+        {
+            let mut ret = "Failed".to_string();
+            for option in command.data.options.clone()
+            {
+                match option.kind
+                {
+                    CommandOptionType::SubCommand => match &*option.name
+                    {
+                        "random" =>
+                        {
+                            ret = match quote::Quote::get_random()
+                            {
+                                Ok(x) => x.to_string(),
+                                Err(e) => e.to_string(),
+                            };
+                        }
+                        _ => unreachable!(),
+                    },
+                    _ => unreachable!(),
+                }
+            }
+            ret
+        }
+
         "wiki" =>
         {
             let mut max = 600;

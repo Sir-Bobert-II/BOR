@@ -1,7 +1,7 @@
 use serde_derive::*;
 
+use serenity::model::prelude::GuildId;
 use serenity::model::prelude::PartialChannel;
-use serenity::{model::prelude::GuildId};
 use std::{
     fs::{self, create_dir_all, read_to_string},
     io::{Error, ErrorKind},
