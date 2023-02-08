@@ -1,7 +1,7 @@
 use serde_derive::*;
 
 use serenity::model::prelude::PartialChannel;
-use serenity::{json, model::prelude::GuildId};
+use serenity::{model::prelude::GuildId};
 use std::{
     fs::{self, create_dir_all, read_to_string},
     io::{Error, ErrorKind},
@@ -19,7 +19,7 @@ impl RestrictedWords
     pub fn from(path: PathBuf) -> Result<Self, Error>
     {
         let contents = read_to_string(path)?;
-        let words: Self = match json::prelude::from_str(&contents)
+        let words: Self = match toml::from_str(&contents)
         {
             Ok(x) => x,
             Err(x) => return Err(Error::new(ErrorKind::Other, x)),
@@ -123,7 +123,7 @@ impl GuildSettings
     {
         let contents = read_to_string(path)?;
 
-        let settings: GuildSettings = match serde_json::from_str(&contents)
+        let settings: GuildSettings = match toml::from_str(&contents)
         {
             Ok(x) => x,
             Err(x) =>
@@ -148,7 +148,7 @@ impl GuildSettings
             }
         }
 
-        let serialized = serde_json::to_string(&self).unwrap();
+        let serialized = toml::to_string(&self).unwrap();
         fs::write(path, serialized)?;
 
         Ok(self)
@@ -247,11 +247,11 @@ strike! {
     }
 }
 
-fn _d_restricted_words() -> PathBuf { PathBuf::from("/etc/bor/restricted_words.json") }
+fn _d_restricted_words() -> PathBuf { PathBuf::from("/etc/bor/restricted_words.toml") }
 
-fn _d_warnings() -> PathBuf { PathBuf::from("/var/local/bor/warnings.json") }
+fn _d_warnings() -> PathBuf { PathBuf::from("/var/local/bor/warnings.toml") }
 
-fn _d_guild_settings() -> PathBuf { PathBuf::from("/var/local/bor/guild_settings.json") }
+fn _d_guild_settings() -> PathBuf { PathBuf::from("/var/local/bor/guild_settings.toml") }
 
 impl Config
 {

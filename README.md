@@ -64,6 +64,7 @@ The bot currently only supports Linux environments.
 * `random roulette` -- Play Russian Roulette
 * `conversions hours` -- Convert between 24 hour and 12 hour time
 * `conversions temperature` -- Convert between Kelvin, Celsius, and Fahrenheit
+* `conversions currency` -- Convert to and from various currencies
 
 ## Compiling
 
@@ -113,14 +114,13 @@ The layout of this file is as follows:
 token = "<your_discord_token>"
 
 [resources]
-restrictedWords = "/etc/bor/words.json" # Default: "/etc/bor/restricted_words.json"
-guildSettings = "/var/local/bor/guild_settings.json" # Default: "/var/local/bor/guild_settings.json"
-warnings = "/var/local/bor/warnings.json" # Default: "/var/local/bor/warnings.json"
+restrictedWords = "/etc/bor/words.toml" # Default: "/etc/bor/restricted_words.toml"
+guildSettings = "/var/local/bor/guild_settings.toml" # Default: "/var/local/bor/guild_settings.toml"
+warnings = "/var/local/bor/warnings.toml" # Default: "/var/local/bor/warnings.toml"
 ```
 
 `secrets` contains `token`, your discord application token. Next, `resources` contains
-paths to where resources are stored. These aren't meant to be read by the end user, so they
-are JSON documents. Specifing any of these resources is optional as the default values are
+paths to where resources are stored. Specifing any of these resources is optional as the default values are
 usually sufficiant.
 
 ### Bot as a Service
