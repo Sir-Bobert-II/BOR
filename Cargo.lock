@@ -541,7 +541,7 @@ checksum = "95505c38b4572b2d910cecb0281560f54b440a19336cbbcb27bf6ce6adc6f5a8"
 [[package]]
 name = "help"
 version = "0.1.0"
-source = "git+https://github.com/Sir-Bobert-II/BOR-extra?rev=f31f85bc48c6b90a5f19facfcf7ea561a959374a#f31f85bc48c6b90a5f19facfcf7ea561a959374a"
+source = "git+https://github.com/Sir-Bobert-II/BOR-extra?rev=ad995cd63e9c13faa6ab9dd97f1674308fe0a15a#ad995cd63e9c13faa6ab9dd97f1674308fe0a15a"
 
 [[package]]
 name = "hermit-abi"
@@ -1014,7 +1014,7 @@ dependencies = [
 [[package]]
 name = "quote"
 version = "0.1.0"
-source = "git+https://github.com/Sir-Bobert-II/BOR-extra?rev=f31f85bc48c6b90a5f19facfcf7ea561a959374a#f31f85bc48c6b90a5f19facfcf7ea561a959374a"
+source = "git+https://github.com/Sir-Bobert-II/BOR-extra?rev=ad995cd63e9c13faa6ab9dd97f1674308fe0a15a#ad995cd63e9c13faa6ab9dd97f1674308fe0a15a"
 dependencies = [
  "help",
  "lazy_static",

@@ -35,4 +35,4 @@ bor_wiki = {git = "https://github.com/Sir-Bobert-II/BOR-wiki", rev = "57d34efc3b
 bor_define = {git = "https://github.com/Sir-Bobert-II/BOR-define.git", rev = "ac250c6ebef871b1bb49e548f02cc3d20317b5b7"}
 
 # Quotes
-quote = { git="https://github.com/Sir-Bobert-II/BOR-extra", rev ="f31f85bc48c6b90a5f19facfcf7ea561a959374a" }
+quote = { git="https://github.com/Sir-Bobert-II/BOR-extra", rev ="ad995cd63e9c13faa6ab9dd97f1674308fe0a15a" }
