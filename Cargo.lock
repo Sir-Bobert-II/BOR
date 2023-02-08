@@ -89,9 +89,13 @@ dependencies = [
 [[package]]
 name = "bor_conversions"
 version = "0.1.0"
-source = "git+https://github.com/Sir-Bobert-II/BOR-conversions#208ef844a0bb64209aff7ce3a59a658af6ce2465"
+source = "git+https://github.com/Sir-Bobert-II/BOR-conversions?rev=0a8b98b66518bb1db5a592dfa917af5e8a29a0b4#0a8b98b66518bb1db5a592dfa917af5e8a29a0b4"
 dependencies = [
  "chrono",
+ "lazy_static",
+ "reqwest",
+ "serde",
+ "serde_derive",
  "serenity",
  "thiserror",
  "tokio",
@@ -100,7 +104,7 @@ dependencies = [
 [[package]]
 name = "bor_define"
 version = "0.1.0"
-source = "git+https://github.com/Sir-Bobert-II/BOR-define.git#ac250c6ebef871b1bb49e548f02cc3d20317b5b7"
+source = "git+https://github.com/Sir-Bobert-II/BOR-define.git?rev=ac250c6ebef871b1bb49e548f02cc3d20317b5b7#ac250c6ebef871b1bb49e548f02cc3d20317b5b7"
 dependencies = [
  "log",
  "reqwest",
@@ -115,7 +119,7 @@ dependencies = [
 [[package]]
 name = "bor_warn"
 version = "0.2.0"
-source = "git+https://github.com/Sir-Bobert-II/BOR-Warn.git#ca41250e935ac478cb8021589ba0bc46f18fd031"
+source = "git+https://github.com/Sir-Bobert-II/BOR-Warn.git?rev=ca41250e935ac478cb8021589ba0bc46f18fd031#ca41250e935ac478cb8021589ba0bc46f18fd031"
 dependencies = [
  "chrono",
  "serde",
@@ -129,7 +133,7 @@ dependencies = [
 [[package]]
 name = "bor_wiki"
 version = "0.1.0"
-source = "git+https://github.com/Sir-Bobert-II/BOR-wiki#57d34efc3be4dedcfe7a65bfcb07dfdda4fb8115"
+source = "git+https://github.com/Sir-Bobert-II/BOR-wiki?rev=57d34efc3be4dedcfe7a65bfcb07dfdda4fb8115#57d34efc3be4dedcfe7a65bfcb07dfdda4fb8115"
 dependencies = [
  "serenity",
  "truncrate",

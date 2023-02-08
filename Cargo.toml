@@ -23,13 +23,13 @@ env_logger = "0.10.0"
 rand = "0.8.5"
 
 # Warning system
-bor_warn = { git = "https://github.com/Sir-Bobert-II/BOR-Warn.git" }
+bor_warn = { git = "https://github.com/Sir-Bobert-II/BOR-Warn.git", rev = "ca41250e935ac478cb8021589ba0bc46f18fd031" }
 
 # Conversions
-bor_conversions = { git = "https://github.com/Sir-Bobert-II/BOR-conversions" }
+bor_conversions = { git = "https://github.com/Sir-Bobert-II/BOR-conversions", rev = "0a8b98b66518bb1db5a592dfa917af5e8a29a0b4" }
 
 # Wikipedia
-bor_wiki = {git = "https://github.com/Sir-Bobert-II/BOR-wiki"}
+bor_wiki = {git = "https://github.com/Sir-Bobert-II/BOR-wiki", rev = "57d34efc3be4dedcfe7a65bfcb07dfdda4fb8115" }
 
 # Define words
-bor_define = {git = "https://github.com/Sir-Bobert-II/BOR-define.git"}
+bor_define = {git = "https://github.com/Sir-Bobert-II/BOR-define.git", rev = "ac250c6ebef871b1bb49e548f02cc3d20317b5b7"}

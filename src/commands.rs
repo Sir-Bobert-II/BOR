@@ -1,5 +1,6 @@
-use std::str::FromStr;
+use std::{str::FromStr, sync::Mutex};
 
+use chrono::Duration;
 use log::error;
 use serenity::{
     model::prelude::{
@@ -15,7 +16,19 @@ use serenity::{
 use crate::{
     builtins::{self, meta, moderation},
     config::WarnBehavior,
+    CONFIG,
 };
+
+use lazy_static::lazy_static;
+
+lazy_static! {
+    static ref API_KEY: String = CONFIG.secrets.keys.currency_api.clone();
+    static ref CURRENCY_CONVERTER: Mutex<conversions::currency::CurrencyConverter> = Mutex::new({
+        conversions::currency::CurrencyConverter::new(API_KEY.to_string(), Duration::hours(6))
+            .unwrap()
+    });
+}
+
 pub async fn run(context: Context, command: ApplicationCommandInteraction)
 {
     let command_name = command.data.name.as_str();
@@ -81,6 +94,7 @@ pub async fn run(context: Context, command: ApplicationCommandInteraction)
 
             ret
         }
+
         "moderation" =>
         {
             let mut ret = "Failed".to_string();
@@ -430,6 +444,38 @@ pub async fn run(context: Context, command: ApplicationCommandInteraction)
                                     _ => unreachable!(),
                                 }
                             }
+                        }
+
+                        "currency" =>
+                        {
+                            let (mut input, mut target) = ("0f".to_string(), "nothing".to_string());
+                            for opt in option.options
+                            {
+                                match &*opt.name
+                                {
+                                    "input" =>
+                                    {
+                                        if let CommandDataOptionValue::String(s) =
+                                            opt.resolved.unwrap()
+                                        {
+                                            input = s;
+                                        }
+                                    }
+
+                                    "target" =>
+                                    {
+                                        if let CommandDataOptionValue::String(s) =
+                                            opt.resolved.unwrap()
+                                        {
+                                            target = s;
+                                        }
+                                    }
+                                    _ => unreachable!(),
+                                }
+                            }
+                            let mut converter = CURRENCY_CONVERTER.lock().unwrap().to_owned();
+                            (ret, converter) = conversions::currency::run(converter, input, target);
+                            *CURRENCY_CONVERTER.lock().unwrap() = converter;
                         }
 
                         "temperature" =>

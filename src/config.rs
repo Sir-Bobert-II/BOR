@@ -225,7 +225,11 @@ strike! {
     {
         pub secrets: pub struct
         {
-            pub token: String
+            pub token: String,
+            pub keys: pub struct ApiKeys
+            {
+                pub currency_api: String,
+            }
         },
 
         pub resources: pub struct Resources
