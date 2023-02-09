@@ -107,6 +107,7 @@ impl EventHandler for Handler
                 .create_application_command(|command| wiki::register(command))
                 .create_application_command(|command| define::register(command))
                 .create_application_command(|command| quote::register(command))
+                .create_application_command(|command| image::register(command))
         })
         .await
         .unwrap();
