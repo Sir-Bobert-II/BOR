@@ -60,6 +60,39 @@ pub async fn run(context: Context, command: ApplicationCommandInteraction)
             }
             ret
         }
+        "image" =>
+        {
+            let mut ret = "Failed".to_string();
+            for option in command.data.options.clone()
+            {
+                match option.kind
+                {
+                    CommandOptionType::SubCommand => match &*option.name
+                    {
+                        "random_dog" =>
+                        {
+                            ret = match image::DogImage::random()
+                            {
+                                Ok(x) => image::Image::from(x).to_string(),
+                                Err(e) => e.to_string(),
+                            };
+                        }
+
+                        "random_cat" =>
+                        {
+                            ret = match image::CatImage::random()
+                            {
+                                Ok(x) => image::Image::from(x).to_string(),
+                                Err(e) => e.to_string(),
+                            };
+                        }
+                        _ => unreachable!(),
+                    },
+                    _ => unreachable!(),
+                }
+            }
+            ret
+        }
 
         "wiki" =>
         {
