@@ -89,7 +89,7 @@ dependencies = [
 [[package]]
 name = "bor_conversions"
 version = "0.1.0"
-source = "git+https://github.com/Sir-Bobert-II/BOR-conversions?rev=3cae2995583f38648b0ab6d970644d3a892c9e39#3cae2995583f38648b0ab6d970644d3a892c9e39"
+source = "git+https://github.com/Sir-Bobert-II/BOR-conversions?rev=0d1a89565e69df53f573b5117d3fa5c58d4b0458#0d1a89565e69df53f573b5117d3fa5c58d4b0458"
 dependencies = [
  "chrono",
  "help 0.1.0 (git+https://github.com/Sir-Bobert-II/BOR-extra?rev=f31f85bc48c6b90a5f19facfcf7ea561a959374a)",
