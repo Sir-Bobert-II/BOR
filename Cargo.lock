@@ -89,9 +89,10 @@ dependencies = [
 [[package]]
 name = "bor_conversions"
 version = "0.1.0"
-source = "git+https://github.com/Sir-Bobert-II/BOR-conversions?rev=0a8b98b66518bb1db5a592dfa917af5e8a29a0b4#0a8b98b66518bb1db5a592dfa917af5e8a29a0b4"
+source = "git+https://github.com/Sir-Bobert-II/BOR-conversions?rev=3cae2995583f38648b0ab6d970644d3a892c9e39#3cae2995583f38648b0ab6d970644d3a892c9e39"
 dependencies = [
  "chrono",
+ "help 0.1.0 (git+https://github.com/Sir-Bobert-II/BOR-extra?rev=f31f85bc48c6b90a5f19facfcf7ea561a959374a)",
  "lazy_static",
  "reqwest",
  "serde",
@@ -545,6 +546,11 @@ version = "0.1.0"
 source = "git+https://github.com/Sir-Bobert-II/BOR-extra?rev=35eaf038fe24026ec695a208d62fa86179878e31#35eaf038fe24026ec695a208d62fa86179878e31"
 
 [[package]]
+name = "help"
+version = "0.1.0"
+source = "git+https://github.com/Sir-Bobert-II/BOR-extra?rev=f31f85bc48c6b90a5f19facfcf7ea561a959374a#f31f85bc48c6b90a5f19facfcf7ea561a959374a"
+
+[[package]]
 name = "hermit-abi"
 version = "0.2.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -689,7 +695,7 @@ version = "0.1.0"
 source = "git+https://github.com/Sir-Bobert-II/BOR-extra?rev=35eaf038fe24026ec695a208d62fa86179878e31#35eaf038fe24026ec695a208d62fa86179878e31"
 dependencies = [
  "chrono",
- "help",
+ "help 0.1.0 (git+https://github.com/Sir-Bobert-II/BOR-extra?rev=35eaf038fe24026ec695a208d62fa86179878e31)",
  "lazy_static",
  "reqwest",
  "serde",
@@ -1032,7 +1038,7 @@ name = "quote"
 version = "0.1.0"
 source = "git+https://github.com/Sir-Bobert-II/BOR-extra?rev=35eaf038fe24026ec695a208d62fa86179878e31#35eaf038fe24026ec695a208d62fa86179878e31"
 dependencies = [
- "help",
+ "help 0.1.0 (git+https://github.com/Sir-Bobert-II/BOR-extra?rev=35eaf038fe24026ec695a208d62fa86179878e31)",
  "lazy_static",
  "reqwest",
  "serde",
