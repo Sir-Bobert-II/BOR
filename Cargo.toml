@@ -32,11 +32,10 @@ bor_conversions = { git = "https://github.com/Sir-Bobert-II/BOR-conversions", re
 bor_wiki = {git = "https://github.com/Sir-Bobert-II/BOR-wiki", rev = "57d34efc3be4dedcfe7a65bfcb07dfdda4fb8115" }
 
 # Define words
-bor_define = {git = "https://github.com/Sir-Bobert-II/BOR-define.git", rev = "ac250c6ebef871b1bb49e548f02cc3d20317b5b7"}
+bor_define = {git = "https://github.com/Sir-Bobert-II/BOR-define.git", rev = "b3332eec2d2bdb33174c57140b815cd6d982619f"}
 
 # Quotes
 quote = { git="https://github.com/Sir-Bobert-II/BOR-extra", rev ="35eaf038fe24026ec695a208d62fa86179878e31" }
 
 # Image
-
 image = { git="https://github.com/Sir-Bobert-II/BOR-extra", rev = "35eaf038fe24026ec695a208d62fa86179878e31"}
