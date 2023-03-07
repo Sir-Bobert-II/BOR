@@ -49,8 +49,8 @@ impl UsageData
         {
             match toml::from_str::<Self>(&contents)
             {
-                Ok(x) => Ok(x),
-                Err(x) => return None,
+                Ok(x) => Some(x),
+                Err(x) => None,
             }
         }
         else
