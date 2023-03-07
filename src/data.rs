@@ -41,15 +41,21 @@ pub struct UserData
     requests: Vec<(u64, DateTime<Utc>)>,
 }
 
-impl Gdata
+impl UsageData
 {
-    fn load() -> Self
+    pub fn load(path: PathBuf) -> Option<Self>
     {
-
+        if let contents = read_to_string(path)
+        {
+            match toml::from_str::<Self>(&contents)
+            {
+                Ok(x) => Ok(x),
+                Err(x) => return Err(Error::new(ErrorKind::Other, x)),
+            }
+        }
+        else
+        {
+            None
+        }
     }
-}
-
-impl Udata
-{
-
 }
