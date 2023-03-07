@@ -37,9 +37,9 @@ lazy_static! {
     static ref CONFIG: config::Config = Config::from(CONFIG_FILE.into()).unwrap();
     static ref RESTRICTED_WORDS: config::RestrictedWords =
         RestrictedWords::from(CONFIG.resources.restricted_words.clone()).unwrap();
-    static ref GUILD_DATA: Mutex<data::Gdata> = {
+    static ref GUILD_DATA: Mutex<data::UsageData> = Mutex::new({
         
-    }
+    });
 }
 
 #[tokio::main]
