@@ -50,7 +50,7 @@ impl UsageData
             match toml::from_str::<Self>(&contents)
             {
                 Ok(x) => Ok(x),
-                Err(x) => return Err(Error::new(ErrorKind::Other, x)),
+                Err(x) => return None,
             }
         }
         else
