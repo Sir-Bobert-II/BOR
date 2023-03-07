@@ -38,7 +38,11 @@ lazy_static! {
     static ref RESTRICTED_WORDS: config::RestrictedWords =
         RestrictedWords::from(CONFIG.resources.restricted_words.clone()).unwrap();
     static ref GUILD_DATA: Mutex<data::UsageData> = Mutex::new({
-        
+        match data::UsageData::load(CONFIG.resources.analytics.clone())
+        {
+            Some(x) => x,
+            None => UsageData::default()
+        }
     });
 }
 

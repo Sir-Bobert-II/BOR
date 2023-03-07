@@ -243,7 +243,7 @@ strike! {
             #[serde(default = "_d_guild_settings" )]
             pub guild_settings: PathBuf,
 
-            #[serde(default = "_d_analytics" )
+            #[serde(default = "_d_analytics" )]
             pub analytics: PathBuf,
         },
 
