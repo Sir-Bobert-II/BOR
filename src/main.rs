@@ -3,6 +3,8 @@ mod commands;
 mod config;
 mod filtering;
 
+mod data;
+
 extern crate bor_conversions as conversions;
 extern crate bor_define as define;
 extern crate bor_warn as warn;
@@ -35,6 +37,9 @@ lazy_static! {
     static ref CONFIG: config::Config = Config::from(CONFIG_FILE.into()).unwrap();
     static ref RESTRICTED_WORDS: config::RestrictedWords =
         RestrictedWords::from(CONFIG.resources.restricted_words.clone()).unwrap();
+    static ref GUILD_DATA: Mutex<data::Gdata> = {
+        
+    }
 }
 
 #[tokio::main]
