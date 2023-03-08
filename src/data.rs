@@ -172,3 +172,97 @@ impl IntoIterator for GuildData
 
     fn into_iter(self) -> Self::IntoIter { self.requests.into_iter() }
 }
+
+async fn build_graphs()
+{
+    use poloto::{build, num::timestamp};
+    let data = crate::DATA.lock().await;
+
+    let scratch = CONFIG.resources.scratch.clone();
+    if !scratch.exists() {
+        std::fs::create_dir_all(&scratch).unwrap();
+    }
+
+    // Create a plot for each guild's usage
+    for (gid, gdat) in data.gdata.iter() {
+        let data = gdat
+            .requests
+            .iter()
+            .map(|(x, y)| (timestamp::UnixTime::from(*y), *x as f64));
+
+        // Create a histogram  for each guild containing its usage over time. Save this svg
+        let plot = poloto::data(poloto::plots!(build::plot("").histogram(data)))
+            .build_and_label((
+                format!("Command Calls for '{} ({})'", gdat.gname, gid),
+                "Time",
+                "Command Calls",
+            ))
+            .append_to(poloto::header().dark_theme())
+            .render_string()
+            .unwrap();
+
+        // Write the plot svg to a temporary file
+        let mut f =
+            std::fs::File::create(scratch.join(format!("{}.svg", gid.to_string()))).unwrap();
+        f.write_all(plot.as_bytes()).unwrap();
+    }
+
+    let _d = data.udata.iter().next().unwrap().1
+    .requests
+    .iter()
+    .map(|(x, y)| (timestamp::UnixTime::from(*y), *x as f64));
+
+    let mut plot =
+        build::plot(format!(
+            "Command Calls for '{} ({})'",
+            data.udata[0].1.gname,
+            data.udata[0].0
+        )).line(_d);
+
+    // Create a plot for user usage
+    for (uid, udat) in data.udata.iter().skip(1) {
+        let data = udat
+            .requests
+            .iter()
+            .map(|(x, y)| (timestamp::UnixTime::from(*y), *x as f64));
+
+        
+        for dat in data.into_iter().skip(1)
+        {
+            plot.chain(build::plot(format!(
+                "Command Calls for '{} ({})'",
+                dat.1.gname,
+                data.gdata[0].0
+            )).line(_d));
+        }
+        let plot = poloto::data(poloto::plots!())
+            .build_and_label((
+                "Command calls per user",
+                "Time",
+                "Command Calls",
+            ))
+            .append_to(poloto::header().dark_theme())
+            .render_string()
+            .unwrap();
+        let mut f =
+            std::fs::File::create(scratch.join(format!("user-{}.svg", uid.to_string()))).unwrap();
+        f.write_all(plot.as_bytes()).unwrap();
+    }
+}
+
+/// Clean old data
+async fn mangage_data()
+{
+    let mut data = DATA.lock().await;
+    let threshold = Utc::now() - Duration::days(30);
+
+    // Remove data older than the threshold
+    for (_, gdat) in data.gdata.iter_mut() {
+        gdat.requests
+            .retain(|(_, timestamp)| *timestamp > threshold)
+    }
+    for (_, udat) in data.udata.iter_mut() {
+        udat.requests
+            .retain(|(_, timestamp)| *timestamp > threshold)
+    }
+}

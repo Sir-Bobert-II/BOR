@@ -2,7 +2,6 @@ mod builtins;
 mod commands;
 mod config;
 mod filtering;
-
 mod data;
 
 extern crate bor_conversions as conversions;
@@ -58,7 +57,7 @@ async fn main() -> Result<(), std::io::Error>
     let data_management = tokio_schedule::every(1)
         .day()
         .in_timezone(&Utc)
-        .perform(mangage_data);
+        .perform(data::mangage_data);
 
     let token = &CONFIG.secrets.token;
     let intents = GatewayIntents::GUILD_MESSAGES
@@ -73,100 +72,14 @@ async fn main() -> Result<(), std::io::Error>
     if let Err(why) = client.start().await {
         error!("Error: {:?}", why);
     }
+    
     Ok(())
-}
-
-async fn build_graphs()
-{
-    use poloto::{build, num::timestamp};
-    let data = DATA.lock().await;
-
-    let scratch = CONFIG.resources.scratch.clone();
-    if !scratch.exists() {
-        std::fs::create_dir_all(&scratch).unwrap();
-    }
-
-    // Create a plot for each guild's usage
-    for (gid, gdat) in data.gdata.iter() {
-        let data = gdat
-            .requests
-            .iter()
-            .map(|(x, y)| (timestamp::UnixTime::from(*y), *x as f64));
-        let plot = poloto::data(poloto::plots!(build::plot("").histogram(data)))
-            .build_and_label((
-                format!("Command Calls for '{} ({})'", gdat.gname, gid),
-                "Time",
-                "Command Calls",
-            ))
-            .append_to(poloto::header().dark_theme())
-            .render_string()
-            .unwrap();
-        let mut f =
-            std::fs::File::create(scratch.join(format!("{}.svg", gid.to_string()))).unwrap();
-        f.write_all(plot.as_bytes()).unwrap();
-    }
-
-    let _d = data.gdata.iter().next().unwrap().1
-    .requests
-    .iter()
-    .map(|(x, y)| (timestamp::UnixTime::from(*y), *x as f64));
-
-    let mut plot =
-        build::plot(format!(
-            "Command Calls for '{} ({})'",
-            data.gdata[0].1.gname,
-            data.gdata[0].0
-        )).line(_d);
-
-    // Create a plot for user usage
-    for (uid, udat) in data.gdata.iter().skip(1) {
-        let data = udat
-            .requests
-            .iter()
-            .map(|(x, y)| (timestamp::UnixTime::from(*y), *x as f64));
-
-        
-        for dat in data.into_iter().skip(1)
-        {
-            plot.chain()
-        }
-        let plot = poloto::data(poloto::plots!())
-            .build_and_label((
-                "Command calls per user",
-                "Time",
-                "Command Calls",
-            ))
-            .append_to(poloto::header().dark_theme())
-            .render_string()
-            .unwrap();
-        let mut f =
-            std::fs::File::create(scratch.join(format!("user-{}.svg", uid.to_string()))).unwrap();
-        f.write_all(plot.as_bytes()).unwrap();
-    }
-}
-
-async fn mangage_data()
-{
-    let mut data = DATA.lock().await;
-    let threshold = Utc::now() - Duration::days(30);
-
-    // Remove data older than the threshold
-    for (_, gdat) in data.gdata.iter_mut() {
-        gdat.requests
-            .retain(|(_, timestamp)| *timestamp > threshold)
-    }
-    for (_, udat) in data.udata.iter_mut() {
-        udat.requests
-            .retain(|(_, timestamp)| *timestamp > threshold)
-    }
 }
 
 #[cfg(test)]
 mod tests
 {
-
     use std::io::Write;
-
     use crate::data::{GuildData, UsageData};
 
     use super::*;
@@ -247,6 +160,7 @@ impl EventHandler for Handler
     async fn interaction_create(&self, ctx: Context, interaction: Interaction)
     {
         if let Interaction::ApplicationCommand(command) = interaction {
+            info!("Running command '{}'", command.name);
             commands::run(ctx, command).await;
         }
     }
@@ -275,6 +189,7 @@ impl EventHandler for Handler
     async fn ready(&self, context: Context, ready: Ready)
     {
         info!("{} is connected!", ready.user.name);
+        info!("Registering commands...");
         Command::set_global_application_commands(&context.http, |commands| {
             commands
                 .create_application_command(|command| builtins::moderation::register(command))
@@ -288,7 +203,7 @@ impl EventHandler for Handler
                 .create_application_command(|command| image::register(command))
         })
         .await
-        .unwrap();
-        info!("Commands Initialized")
+        .expect("Unable to register commands.");
+        info!("Commands registered.")
     }
 }
