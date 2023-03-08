@@ -24,6 +24,7 @@ use serenity::{
     },
     prelude::*,
 };
+use std::io::Write;
 use std::path::PathBuf;
 use tokio_schedule::Job;
 
@@ -80,12 +81,54 @@ async fn build_graphs()
     use poloto::{build, num::timestamp};
     let data = DATA.lock().await;
 
-    for (_, gdat) in data.gdata.iter() {
+    // Create a plot for each guild's usage
+    for (gid, gdat) in data.gdata.iter() {
         let data = gdat
             .requests
             .iter()
-            .map(|(x, y)| (*x as f64, timestamp::UnixTime::from(*y)));
-        let plots = poloto::plots!(build::plot("").line(data));
+            .map(|(x, y)| (timestamp::UnixTime::from(*y), *x as f64));
+
+        let scratch = crate::CONFIG.resources.scratch.clone();
+        if !scratch.exists() {
+            std::fs::create_dir_all(&scratch).unwrap();
+        }
+        let plot = poloto::data(poloto::plots!(build::plot("").histogram(data)))
+            .build_and_label((
+                format!("Command Calls for '{} ({})'", gdat.gname, gid),
+                "Time",
+                "Command Calls",
+            ))
+            .append_to(poloto::header().dark_theme())
+            .render_string()
+            .unwrap();
+        let mut f =
+            std::fs::File::create(scratch.join(format!("{}.svg", gid.to_string()))).unwrap();
+        f.write_all(plot.as_bytes()).unwrap();
+    }
+
+    // Create a plot for user usage
+    for (uid, udat) in data.gdata.iter() {
+        let data = udat
+            .requests
+            .iter()
+            .map(|(x, y)| (timestamp::UnixTime::from(*y), *x as f64));
+
+        let scratch = crate::CONFIG.resources.scratch.clone();
+        if !scratch.exists() {
+            std::fs::create_dir_all(&scratch).unwrap();
+        }
+        let plot = poloto::data(poloto::plots!(build::plot("").histogram(data)))
+            .build_and_label((
+                format!("Command Calls for '{} ({})'", udat.gname, uid),
+                "Time",
+                "Command Calls",
+            ))
+            .append_to(poloto::header().dark_theme())
+            .render_string()
+            .unwrap();
+        let mut f =
+            std::fs::File::create(scratch.join(format!("user-{}.svg", uid.to_string()))).unwrap();
+        f.write_all(plot.as_bytes()).unwrap();
     }
 }
 
@@ -108,6 +151,8 @@ async fn mangage_data()
 #[cfg(test)]
 mod tests
 {
+
+    use std::io::Write;
 
     use crate::data::{GuildData, UsageData};
 
@@ -138,7 +183,7 @@ mod tests
                 (
                     GuildId(23),
                     GuildData {
-                        gid: GuildId(122),
+                        gid: GuildId(23),
                         gname: "PCMR".to_string(),
                         requests: vec![
                             (5600, Utc::now() - Duration::hours(5)),
@@ -151,23 +196,30 @@ mod tests
                 ),
             ]),
         };
-        let plots = build::plot("");
-        for (_, gdat) in data.gdata.iter() {
+
+
+        for (gid, gdat) in data.gdata.iter() {
             let data = gdat
                 .requests
                 .iter()
                 .map(|(x, y)| (timestamp::UnixTime::from(*y), *x as f64));
-            plots.
 
-            build::plot("").histogram(data)
-            poloto::data()
+            let scratch = crate::CONFIG.resources.scratch.clone();
+            if !scratch.exists() {
+                std::fs::create_dir_all(&scratch).unwrap();
+            }
+            let plot = poloto::data(poloto::plots!(build::plot("").histogram(data)))
                 .build_and_label((
-                    format!("Command Calls for '{} ({})'", gdat.gname, gdat.gid),
+                    format!("Command Calls for '{} ({})'", gdat.gname, gid),
                     "Time",
                     "Command Calls",
                 ))
                 .append_to(poloto::header().dark_theme())
-                .render_stdout();
+                .render_string()
+                .unwrap();
+            let mut f =
+                std::fs::File::create(scratch.join(format!("{}.svg", gid.to_string()))).unwrap();
+            f.write_all(plot.as_bytes()).unwrap();
         }
 
         assert!(false)

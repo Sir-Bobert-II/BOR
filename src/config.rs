@@ -232,6 +232,9 @@ strike! {
 
             #[serde(default = "_d_analytics" )]
             pub analytics: PathBuf,
+
+            #[serde(default = "_d_scratch" )]
+            pub scratch: PathBuf,
         },
 
     }
@@ -240,7 +243,8 @@ strike! {
 fn _d_restricted_words() -> PathBuf { PathBuf::from("/etc/bor/restricted_words.toml") }
 fn _d_warnings() -> PathBuf { PathBuf::from("/var/local/bor/warnings.toml") }
 fn _d_guild_settings() -> PathBuf { PathBuf::from("/var/local/bor/guild_settings.toml") }
-fn _d_analytics() -> PathBuf { PathBuf::from("/var/local/bor/analytics.json") }
+fn _d_analytics() -> PathBuf { PathBuf::from("/var/local/bor/analytics.data") }
+fn _d_scratch() -> PathBuf { PathBuf::from("/tmp/bor/") }
 
 impl Config
 {
