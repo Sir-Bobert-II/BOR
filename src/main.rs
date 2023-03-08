@@ -81,17 +81,17 @@ async fn build_graphs()
     use poloto::{build, num::timestamp};
     let data = DATA.lock().await;
 
+    let scratch = CONFIG.resources.scratch.clone();
+    if !scratch.exists() {
+        std::fs::create_dir_all(&scratch).unwrap();
+    }
+
     // Create a plot for each guild's usage
     for (gid, gdat) in data.gdata.iter() {
         let data = gdat
             .requests
             .iter()
             .map(|(x, y)| (timestamp::UnixTime::from(*y), *x as f64));
-
-        let scratch = crate::CONFIG.resources.scratch.clone();
-        if !scratch.exists() {
-            std::fs::create_dir_all(&scratch).unwrap();
-        }
         let plot = poloto::data(poloto::plots!(build::plot("").histogram(data)))
             .build_and_label((
                 format!("Command Calls for '{} ({})'", gdat.gname, gid),
@@ -106,20 +106,33 @@ async fn build_graphs()
         f.write_all(plot.as_bytes()).unwrap();
     }
 
+    let _d = data.gdata.iter().next().unwrap().1
+    .requests
+    .iter()
+    .map(|(x, y)| (timestamp::UnixTime::from(*y), *x as f64));
+
+    let mut plot =
+        build::plot(format!(
+            "Command Calls for '{} ({})'",
+            data.gdata[0].1.gname,
+            data.gdata[0].0
+        )).line(_d);
+
     // Create a plot for user usage
-    for (uid, udat) in data.gdata.iter() {
+    for (uid, udat) in data.gdata.iter().skip(1) {
         let data = udat
             .requests
             .iter()
             .map(|(x, y)| (timestamp::UnixTime::from(*y), *x as f64));
 
-        let scratch = crate::CONFIG.resources.scratch.clone();
-        if !scratch.exists() {
-            std::fs::create_dir_all(&scratch).unwrap();
+        
+        for dat in data.into_iter().skip(1)
+        {
+            plot.chain()
         }
-        let plot = poloto::data(poloto::plots!(build::plot("").histogram(data)))
+        let plot = poloto::data(poloto::plots!())
             .build_and_label((
-                format!("Command Calls for '{} ({})'", udat.gname, uid),
+                "Command calls per user",
                 "Time",
                 "Command Calls",
             ))
