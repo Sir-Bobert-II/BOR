@@ -33,20 +33,16 @@ impl TimeoutTime
 pub fn generate_ending_time(time: TimeoutTime) -> Timestamp
 {
     let mut when = Utc::now();
-    if let Some(seconds) = time.seconds
-    {
+    if let Some(seconds) = time.seconds {
         when += Duration::seconds(seconds);
     }
-    if let Some(minutes) = time.minutes
-    {
+    if let Some(minutes) = time.minutes {
         when += Duration::minutes(minutes);
     }
-    if let Some(hours) = time.hours
-    {
+    if let Some(hours) = time.hours {
         when += Duration::hours(hours);
     }
-    if let Some(days) = time.days
-    {
+    if let Some(days) = time.days {
         when += Duration::days(days);
     }
 
@@ -66,14 +62,10 @@ pub async fn timeout(
         .disable_communication_until_datetime(&context.http, generate_ending_time(time))
         .await
     {
-        Ok(_) =>
-        {
-            if !auto
-            {
+        Ok(_) => {
+            if !auto {
                 Some(format!("Timed out user {}", user.name))
-            }
-            else
-            {
+            } else {
                 None
             }
         }
@@ -84,10 +76,8 @@ pub async fn timeout(
 pub async fn release(context: &Context, gid: &GuildId, user: User) -> String
 {
     let mut member = member_from_id(context, *gid, user.id).await;
-    match member.enable_communication(&context.http).await
-    {
-        Ok(_) =>
-        {
+    match member.enable_communication(&context.http).await {
+        Ok(_) => {
             format!("Released user {} from their timeout.", user.name)
         }
         Err(x) => format!("Error: {x}"),

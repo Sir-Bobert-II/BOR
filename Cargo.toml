@@ -39,3 +39,6 @@ quote = { git="https://github.com/Sir-Bobert-II/BOR-extra", rev ="35eaf038fe2402
 
 # Image
 image = { git="https://github.com/Sir-Bobert-II/BOR-extra", rev = "35eaf038fe24026ec695a208d62fa86179878e31"}
+bincode = "1.3.3"
+tokio_schedule = "0.3.0"
+poloto = "17.1.0"

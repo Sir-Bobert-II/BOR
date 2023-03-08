@@ -31,12 +31,9 @@ pub async fn warn(context: &Context, gid: &GuildId, user: User, reason: String) 
 {
     let uname = user.name.clone();
     let warning_behavior = {
-        if let (gs, Some(i)) = GUILD_SETTINGS.lock().unwrap().has_guild(gid)
-        {
+        if let (gs, Some(i)) = GUILD_SETTINGS.lock().unwrap().has_guild(gid) {
             gs.guilds[i].settings.warning_behavior
-        }
-        else
-        {
+        } else {
             WarnBehavior::Nothing
         }
     };
@@ -47,13 +44,10 @@ pub async fn warn(context: &Context, gid: &GuildId, user: User, reason: String) 
         .add_warning(gid, &user, reason.clone())
         .count_warnings(gid, &user);
 
-    match warning_behavior
-    {
-        WarnBehavior::Ban(cap) =>
-        {
+    match warning_behavior {
+        WarnBehavior::Ban(cap) => {
             // Ban the user if we're at the warning limit
-            if count >= cap.into()
-            {
+            if count >= cap.into() {
                 super::ban::run(
                     context,
                     gid,
@@ -65,11 +59,9 @@ pub async fn warn(context: &Context, gid: &GuildId, user: User, reason: String) 
             }
         }
         WarnBehavior::Nothing => (),
-        WarnBehavior::Kick(cap) =>
-        {
+        WarnBehavior::Kick(cap) => {
             // Ban the user if we're at the warning limit
-            if count >= cap.into()
-            {
+            if count >= cap.into() {
                 super::kick::run(
                     context,
                     gid,
@@ -82,11 +74,9 @@ pub async fn warn(context: &Context, gid: &GuildId, user: User, reason: String) 
         WarnBehavior::Timeout {
             warning_count,
             duration,
-        } =>
-        {
+        } => {
             // Ban the user if we're at the warning limit
-            if count >= warning_count.into()
-            {
+            if count >= warning_count.into() {
                 super::timeout::timeout(context, gid, user, duration, true).await;
             }
         }
@@ -118,8 +108,7 @@ pub fn remove_warns(gid: &GuildId, user: User) -> String
     // Get our guild
     let guild_warnings = WARNINGS.lock().unwrap().guilds[guild_pos].clone();
     // Search for where our user is
-    let user_pos = match guild_warnings.users.iter().position(|u| u.user == user)
-    {
+    let user_pos = match guild_warnings.users.iter().position(|u| u.user == user) {
         Some(x) => x,
         None => return "There are no warnings to remove".to_string(),
     };
@@ -139,12 +128,9 @@ pub fn remove_warns(gid: &GuildId, user: User) -> String
 pub fn get_warns(gid: &GuildId, user: User) -> String
 {
     let uname = user.name.clone();
-    if let Some(warnings) = WARNINGS.lock().unwrap().get_warnings(*gid, user)
-    {
+    if let Some(warnings) = WARNINGS.lock().unwrap().get_warnings(*gid, user) {
         warnings.to_string()
-    }
-    else
-    {
+    } else {
         format!("User {uname} has no warnings on record.")
     }
 }

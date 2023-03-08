@@ -19,8 +19,7 @@ impl RestrictedWords
     pub fn from(path: PathBuf) -> Result<Self, Error>
     {
         let contents = read_to_string(path)?;
-        let words: Self = match toml::from_str(&contents)
-        {
+        let words: Self = match toml::from_str(&contents) {
             Ok(x) => x,
             Err(x) => return Err(Error::new(ErrorKind::Other, x)),
         };
@@ -94,12 +93,9 @@ impl GuildSettings
     /// If found, returns the location of the guild
     pub fn has_guild(&self, gid: &GuildId) -> (&Self, Option<usize>)
     {
-        if let Some(pos) = self.guilds.clone().iter().position(|g| g.gid == *gid)
-        {
+        if let Some(pos) = self.guilds.clone().iter().position(|g| g.gid == *gid) {
             (self, Some(pos))
-        }
-        else
-        {
+        } else {
             (self, None)
         }
     }
@@ -107,13 +103,10 @@ impl GuildSettings
     /// Remove a guild's settings
     pub fn _remove_guild(&mut self, gid: GuildId) -> Result<&mut Self, ()>
     {
-        if let Some(pos) = self.guilds.clone().iter().position(|g| g.gid == gid)
-        {
+        if let Some(pos) = self.guilds.clone().iter().position(|g| g.gid == gid) {
             self.guilds.remove(pos);
             Ok(self)
-        }
-        else
-        {
+        } else {
             Err(())
         }
     }
@@ -123,11 +116,9 @@ impl GuildSettings
     {
         let contents = read_to_string(path)?;
 
-        let settings: GuildSettings = match toml::from_str(&contents)
-        {
+        let settings: GuildSettings = match toml::from_str(&contents) {
             Ok(x) => x,
-            Err(x) =>
-            {
+            Err(x) => {
                 println!("{contents}");
                 return Err(Error::new(ErrorKind::Other, x.to_string()));
             }
@@ -140,10 +131,8 @@ impl GuildSettings
     pub fn save(&self, path: PathBuf) -> Result<&Self, Error>
     {
         // If there's a parent to this path, ensure it exists
-        if let Some(parent) = path.parent()
-        {
-            if !parent.exists()
-            {
+        if let Some(parent) = path.parent() {
+            if !parent.exists() {
                 create_dir_all(parent)?;
             }
         }
@@ -203,9 +192,7 @@ impl Settings
         {
             self.restricted_words.remove(pos);
             Ok(self)
-        }
-        else
-        {
+        } else {
             Err(())
         }
     }
@@ -261,11 +248,9 @@ impl Config
     {
         let contents = read_to_string(path)?;
 
-        let config: Config = match toml::from_str(&contents)
-        {
+        let config: Config = match toml::from_str(&contents) {
             Ok(x) => x,
-            Err(x) =>
-            {
+            Err(x) => {
                 println!("{contents}");
                 return Err(Error::new(ErrorKind::Other, x.to_string()));
             }
@@ -277,10 +262,8 @@ impl Config
     pub fn _save(&self, path: PathBuf) -> Result<(), Error>
     {
         // If there's a parent to this path, ensure it exists
-        if let Some(parent) = path.parent()
-        {
-            if !parent.exists()
-            {
+        if let Some(parent) = path.parent() {
+            if !parent.exists() {
                 create_dir_all(parent)?;
             }
         }

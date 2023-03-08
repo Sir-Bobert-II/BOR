@@ -24,8 +24,7 @@ pub fn coin() -> String
 {
     let mut rng = rand::thread_rng();
 
-    match rand::Rng::gen_bool(&mut rng, 1.0 / 2.0)
-    {
+    match rand::Rng::gen_bool(&mut rng, 1.0 / 2.0) {
         true => String::from("Heads"),
         false => String::from("Tails"),
     }
@@ -34,8 +33,7 @@ pub fn coin() -> String
 pub fn roulette() -> String
 {
     let mut rng = rand::thread_rng();
-    match rand::Rng::gen_bool(&mut rng, 1.0 / 6.0)
-    {
+    match rand::Rng::gen_bool(&mut rng, 1.0 / 6.0) {
         true => "Dead".to_string(),
         false => "Alive".to_string(),
     }

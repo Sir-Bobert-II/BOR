@@ -1,6 +1,4 @@
-use std::{str::FromStr, sync::Mutex};
-
-use chrono::Duration;
+use chrono::{DateTime, Duration, Utc};
 use log::error;
 use serenity::{
     model::prelude::{
@@ -12,6 +10,8 @@ use serenity::{
     },
     prelude::Context,
 };
+use std::str::FromStr;
+use tokio::sync::Mutex;
 
 use crate::{
     builtins::{self, meta, moderation},
@@ -27,99 +27,105 @@ lazy_static! {
         conversions::currency::CurrencyConverter::new(API_KEY.to_string(), Duration::hours(6))
             .unwrap()
     });
+    static ref COMMAND_COUNT: Mutex<(u64, DateTime<Utc>)> =
+        Mutex::new((0, Utc::now() + Duration::minutes(20)));
 }
 
 pub async fn run(context: Context, command: ApplicationCommandInteraction)
 {
+    let mut cmd_count = COMMAND_COUNT.lock().await;
+    if Utc::now() < cmd_count.1 {
+        cmd_count.0 = 0;
+        cmd_count.1 = Utc::now() + Duration::minutes(20);
+        let mut data = crate::DATA.lock().await;
+
+        // Increment data counters
+        data.increment_command_count(command.data.name.clone(), cmd_count.0);
+        match command.data.guild_id {
+            Some(x) => {
+                data.increment_guild_count(&context.http, x, cmd_count.0)
+                    .await
+            }
+
+            _ => (),
+        }
+
+        data.save(CONFIG.resources.analytics.clone()).unwrap();
+    } else {
+        cmd_count.0 += 1
+    }
+
     let command_name = command.data.name.as_str();
-    let content = match command_name
-    {
+    let content = match command_name {
         "meta" => meta::meta(),
 
-        "quote" =>
-        {
+        "quote" => {
             let mut ret = "Failed".to_string();
-            for option in command.data.options.clone()
-            {
-                match option.kind
-                {
-                    CommandOptionType::SubCommand => match &*option.name
-                    {
-                        "random" =>
-                        {
-                            ret = match quote::Quote::get_random()
-                            {
-                                Ok(x) => x.to_string(),
-                                Err(e) => e.to_string(),
-                            };
+            for option in command.data.options.clone() {
+                match option.kind {
+                    CommandOptionType::SubCommand => {
+                        match &*option.name {
+                            "random" => {
+                                ret = match quote::Quote::get_random() {
+                                    Ok(x) => x.to_string(),
+                                    Err(e) => e.to_string(),
+                                };
+                            }
+                            _ => unreachable!(),
                         }
-                        _ => unreachable!(),
-                    },
+                    }
                     _ => unreachable!(),
                 }
             }
             ret
         }
-        "image" =>
-        {
+        "image" => {
             let mut ret = "Failed".to_string();
-            for option in command.data.options.clone()
-            {
-                match option.kind
-                {
-                    CommandOptionType::SubCommand => match &*option.name
-                    {
-                        "random_dog" =>
-                        {
-                            ret = match image::DogImage::random()
-                            {
-                                Ok(x) => image::Image::from(x).to_string(),
-                                Err(e) => e.to_string(),
-                            };
-                        }
+            for option in command.data.options.clone() {
+                match option.kind {
+                    CommandOptionType::SubCommand => {
+                        match &*option.name {
+                            "random_dog" => {
+                                ret = match image::DogImage::random() {
+                                    Ok(x) => image::Image::from(x).to_string(),
+                                    Err(e) => e.to_string(),
+                                };
+                            }
 
-                        "random_cat" =>
-                        {
-                            ret = match image::CatImage::random()
-                            {
-                                Ok(x) => image::Image::from(x).to_string(),
-                                Err(e) => e.to_string(),
-                            };
+                            "random_cat" => {
+                                ret = match image::CatImage::random() {
+                                    Ok(x) => image::Image::from(x).to_string(),
+                                    Err(e) => e.to_string(),
+                                };
+                            }
+                            _ => unreachable!(),
                         }
-                        _ => unreachable!(),
-                    },
+                    }
                     _ => unreachable!(),
                 }
             }
             ret
         }
 
-        "wiki" =>
-        {
+        "wiki" => {
             let mut max = 600;
             let mut ret = "FAILED".to_string();
-            if let Some(gid) = &command.guild_id
-            {
+            if let Some(gid) = &command.guild_id {
                 if let (gs, Some(i)) = crate::builtins::settings::SETTINGS
                     .lock()
                     .unwrap()
                     .has_guild(gid)
                 {
-                    if let Some(m) = gs.guilds[i].settings.wiki_limit
-                    {
+                    if let Some(m) = gs.guilds[i].settings.wiki_limit {
                         max = m;
                     }
                 }
             }
 
-            for option in command.data.options.clone()
-            {
-                match &*option.name
-                {
-                    "title" =>
-                    {
-                        if let CommandDataOptionValue::String(title) = option.resolved.unwrap()
-                        {
+            for option in command.data.options.clone() {
+                match &*option.name {
+                    "title" => {
+                        if let CommandDataOptionValue::String(title) = option.resolved.unwrap() {
                             ret = wiki::run(title, max);
                         }
                     }
@@ -131,17 +137,12 @@ pub async fn run(context: Context, command: ApplicationCommandInteraction)
             ret
         }
 
-        "define" =>
-        {
+        "define" => {
             let mut ret = "FAILED".to_string();
-            for option in command.data.options.clone()
-            {
-                match &*option.name
-                {
-                    "word" =>
-                    {
-                        if let CommandDataOptionValue::String(word) = option.resolved.unwrap()
-                        {
+            for option in command.data.options.clone() {
+                match &*option.name {
+                    "word" => {
+                        if let CommandDataOptionValue::String(word) = option.resolved.unwrap() {
                             ret = define::run(&word).await;
                         }
                     }
@@ -153,582 +154,487 @@ pub async fn run(context: Context, command: ApplicationCommandInteraction)
             ret
         }
 
-        "moderation" =>
-        {
+        "moderation" => {
             let mut ret = "Failed".to_string();
-            for option in command.data.options.clone()
-            {
-                match option.kind
-                {
-                    CommandOptionType::SubCommand => match &*option.name
-                    {
-                        "kick" =>
-                        {
-                            let mut user = None;
-                            let mut reason = "No reason provided.".to_string();
-                            for option in option.options
-                            {
-                                let opt = option.resolved.unwrap();
+            for option in command.data.options.clone() {
+                match option.kind {
+                    CommandOptionType::SubCommand => {
+                        match &*option.name {
+                            "kick" => {
+                                let mut user = None;
+                                let mut reason = "No reason provided.".to_string();
+                                for option in option.options {
+                                    let opt = option.resolved.unwrap();
 
-                                match &*option.name
-                                {
-                                    "user" =>
-                                    {
-                                        if let CommandDataOptionValue::User(u, _) = opt
-                                        {
-                                            user = Some(u);
+                                    match &*option.name {
+                                        "user" => {
+                                            if let CommandDataOptionValue::User(u, _) = opt {
+                                                user = Some(u);
+                                            }
                                         }
-                                    }
-                                    "reason" =>
-                                    {
-                                        if let CommandDataOptionValue::String(r) = opt
-                                        {
-                                            reason = r.clone();
+                                        "reason" => {
+                                            if let CommandDataOptionValue::String(r) = opt {
+                                                reason = r.clone();
+                                            }
                                         }
-                                    }
 
-                                    _ => unreachable!(),
+                                        _ => unreachable!(),
+                                    }
+                                }
+
+                                if user.is_none() {
+                                    error!("Cannot respond to slash command: No 'User' provided");
+                                    return;
+                                }
+                                let user = user.unwrap();
+
+                                let guild_id = command.guild_id.unwrap();
+
+                                ret =
+                                    moderation::kick::run(&context, &guild_id, &user, reason).await;
+                            }
+
+                            "ban" => {
+                                let mut user = None;
+                                let mut days: u8 = 0;
+                                let mut reason = "No reason provided.".to_string();
+
+                                for option in option.options {
+                                    let opt = option.resolved.unwrap();
+
+                                    match &*option.name {
+                                        "user" => {
+                                            if let CommandDataOptionValue::User(u, _) = opt {
+                                                user = Some(u);
+                                            }
+                                        }
+                                        "reason" => {
+                                            if let CommandDataOptionValue::String(r) = opt {
+                                                reason = r.clone();
+                                            }
+                                        }
+                                        "days" => {
+                                            if let CommandDataOptionValue::Integer(i) = opt {
+                                                days = i.clamp(0, 7) as u8;
+                                            }
+                                        }
+
+                                        _ => unreachable!(),
+                                    }
+                                }
+
+                                if user.is_none() {
+                                    error!("Cannot respond to slash command: No 'User' provided");
+                                    return;
+                                }
+                                let user = user.unwrap();
+
+                                let guild_id = command.guild_id.unwrap();
+
+                                ret =
+                                    moderation::ban::run(&context, &guild_id, &user, reason, days)
+                                        .await;
+                            }
+
+                            "warn" => {
+                                let mut user = None;
+                                let mut reason = "No reason provided.".to_string();
+                                for option in option.options {
+                                    let opt = option.resolved.unwrap();
+
+                                    match &*option.name.to_lowercase() {
+                                        "user" => {
+                                            if let CommandDataOptionValue::User(u, _) = opt {
+                                                user = Some(u);
+                                            }
+                                        }
+                                        "reason" => {
+                                            if let CommandDataOptionValue::String(r) = opt {
+                                                reason = r.clone();
+                                            }
+                                        }
+
+                                        _ => unreachable!(),
+                                    }
+                                }
+
+                                if user.is_none() {
+                                    error!("Cannot respond to slash command: No 'User' provided");
+                                    return;
+                                }
+                                let user = user.unwrap();
+
+                                let guild_id = command.guild_id.unwrap();
+
+                                ret =
+                                    moderation::warn::warn(&context, &guild_id, user, reason).await
+                            }
+
+                            "get_warnings" => {
+                                let mut user = None;
+                                for option in option.options {
+                                    let opt = option.resolved.unwrap();
+
+                                    match &*option.name {
+                                        "user" => {
+                                            if let CommandDataOptionValue::User(u, _) = opt {
+                                                user = Some(u);
+                                            }
+                                        }
+                                        _ => unreachable!(),
+                                    }
+                                }
+
+                                if user.is_none() {
+                                    error!("Cannot respond to slash command: No 'User' provided");
+                                    return;
+                                }
+                                let user = user.unwrap();
+
+                                let guild_id = command.guild_id.unwrap();
+
+                                ret = moderation::warn::get_warns(&guild_id, user)
+                            }
+
+                            "remove_warns" => {
+                                let mut user = None;
+                                for option in option.options {
+                                    let opt = option.resolved.unwrap();
+
+                                    match &*option.name {
+                                        "user" => {
+                                            if let CommandDataOptionValue::User(u, _) = opt {
+                                                user = Some(u);
+                                            }
+                                        }
+                                        _ => unreachable!(),
+                                    }
+                                }
+
+                                if user.is_none() {
+                                    error!("Cannot respond to slash command: No 'User' provided");
+                                    return;
+                                }
+                                let user = user.unwrap();
+
+                                let guild_id = command.guild_id.unwrap();
+
+                                ret = moderation::warn::remove_warns(&guild_id, user)
+                            }
+
+                            "timeout" => {
+                                let mut user = None;
+                                let mut time: moderation::timeout::TimeoutTime =
+                                    moderation::timeout::TimeoutTime::default();
+                                for option in option.options {
+                                    let opt = option.resolved.unwrap();
+
+                                    match &*option.name {
+                                        "user" => {
+                                            if let CommandDataOptionValue::User(u, _) = opt {
+                                                user = Some(u);
+                                            }
+                                        }
+                                        "days" => {
+                                            if let CommandDataOptionValue::Integer(t) = opt {
+                                                time.days = Some(t)
+                                            }
+                                        }
+                                        "hours" => {
+                                            if let CommandDataOptionValue::Integer(t) = opt {
+                                                time.hours = Some(t)
+                                            }
+                                        }
+                                        "minutes" => {
+                                            if let CommandDataOptionValue::Integer(t) = opt {
+                                                time.minutes = Some(t)
+                                            }
+                                        }
+                                        "seconds" => {
+                                            if let CommandDataOptionValue::Integer(t) = opt {
+                                                time.seconds = Some(t)
+                                            }
+                                        }
+                                        _ => unreachable!(),
+                                    }
+                                }
+
+                                if user.is_none() {
+                                    error!("Cannot respond to slash command: No 'User' provided");
+                                    return;
+                                }
+
+                                if time.is_none() {
+                                    ret = "Error: No units of time were provided!".to_string()
+                                } else {
+                                    ret = moderation::timeout::timeout(
+                                        &context,
+                                        &command.guild_id.unwrap(),
+                                        user.unwrap(),
+                                        time,
+                                        false,
+                                    )
+                                    .await
+                                    .unwrap()
                                 }
                             }
 
-                            if user.is_none()
-                            {
-                                error!("Cannot respond to slash command: No 'User' provided");
-                                return;
-                            }
-                            let user = user.unwrap();
+                            "release" => {
+                                let mut user = None;
+                                for option in option.options {
+                                    let opt = option.resolved.unwrap();
 
-                            let guild_id = command.guild_id.unwrap();
-
-                            ret = moderation::kick::run(&context, &guild_id, &user, reason).await;
-                        }
-
-                        "ban" =>
-                        {
-                            let mut user = None;
-                            let mut days: u8 = 0;
-                            let mut reason = "No reason provided.".to_string();
-
-                            for option in option.options
-                            {
-                                let opt = option.resolved.unwrap();
-
-                                match &*option.name
-                                {
-                                    "user" =>
-                                    {
-                                        if let CommandDataOptionValue::User(u, _) = opt
-                                        {
-                                            user = Some(u);
+                                    match &*option.name {
+                                        "user" => {
+                                            if let CommandDataOptionValue::User(u, _) = opt {
+                                                user = Some(u);
+                                            }
                                         }
+                                        _ => unreachable!(),
                                     }
-                                    "reason" =>
-                                    {
-                                        if let CommandDataOptionValue::String(r) = opt
-                                        {
-                                            reason = r.clone();
-                                        }
-                                    }
-                                    "days" =>
-                                    {
-                                        if let CommandDataOptionValue::Integer(i) = opt
-                                        {
-                                            days = i.clamp(0, 7) as u8;
-                                        }
-                                    }
-
-                                    _ => unreachable!(),
                                 }
-                            }
 
-                            if user.is_none()
-                            {
-                                error!("Cannot respond to slash command: No 'User' provided");
-                                return;
-                            }
-                            let user = user.unwrap();
-
-                            let guild_id = command.guild_id.unwrap();
-
-                            ret = moderation::ban::run(&context, &guild_id, &user, reason, days)
-                                .await;
-                        }
-
-                        "warn" =>
-                        {
-                            let mut user = None;
-                            let mut reason = "No reason provided.".to_string();
-                            for option in option.options
-                            {
-                                let opt = option.resolved.unwrap();
-
-                                match &*option.name.to_lowercase()
-                                {
-                                    "user" =>
-                                    {
-                                        if let CommandDataOptionValue::User(u, _) = opt
-                                        {
-                                            user = Some(u);
-                                        }
-                                    }
-                                    "reason" =>
-                                    {
-                                        if let CommandDataOptionValue::String(r) = opt
-                                        {
-                                            reason = r.clone();
-                                        }
-                                    }
-
-                                    _ => unreachable!(),
+                                if user.is_none() {
+                                    error!("Cannot respond to slash command: No 'User' provided");
+                                    return;
                                 }
+                                let user = user.unwrap();
+
+                                let guild_id = command.guild_id.unwrap();
+
+                                ret = moderation::timeout::release(&context, &guild_id, user).await;
                             }
 
-                            if user.is_none()
-                            {
-                                error!("Cannot respond to slash command: No 'User' provided");
-                                return;
-                            }
-                            let user = user.unwrap();
-
-                            let guild_id = command.guild_id.unwrap();
-
-                            ret = moderation::warn::warn(&context, &guild_id, user, reason).await
-                        }
-
-                        "get_warnings" =>
-                        {
-                            let mut user = None;
-                            for option in option.options
-                            {
-                                let opt = option.resolved.unwrap();
-
-                                match &*option.name
-                                {
-                                    "user" =>
-                                    {
-                                        if let CommandDataOptionValue::User(u, _) = opt
-                                        {
-                                            user = Some(u);
-                                        }
-                                    }
-                                    _ => unreachable!(),
-                                }
-                            }
-
-                            if user.is_none()
-                            {
-                                error!("Cannot respond to slash command: No 'User' provided");
-                                return;
-                            }
-                            let user = user.unwrap();
-
-                            let guild_id = command.guild_id.unwrap();
-
-                            ret = moderation::warn::get_warns(&guild_id, user)
-                        }
-
-                        "remove_warns" =>
-                        {
-                            let mut user = None;
-                            for option in option.options
-                            {
-                                let opt = option.resolved.unwrap();
-
-                                match &*option.name
-                                {
-                                    "user" =>
-                                    {
-                                        if let CommandDataOptionValue::User(u, _) = opt
-                                        {
-                                            user = Some(u);
-                                        }
-                                    }
-                                    _ => unreachable!(),
-                                }
-                            }
-
-                            if user.is_none()
-                            {
-                                error!("Cannot respond to slash command: No 'User' provided");
-                                return;
-                            }
-                            let user = user.unwrap();
-
-                            let guild_id = command.guild_id.unwrap();
-
-                            ret = moderation::warn::remove_warns(&guild_id, user)
-                        }
-
-                        "timeout" =>
-                        {
-                            let mut user = None;
-                            let mut time: moderation::timeout::TimeoutTime =
-                                moderation::timeout::TimeoutTime::default();
-                            for option in option.options
-                            {
-                                let opt = option.resolved.unwrap();
-
-                                match &*option.name
-                                {
-                                    "user" =>
-                                    {
-                                        if let CommandDataOptionValue::User(u, _) = opt
-                                        {
-                                            user = Some(u);
-                                        }
-                                    }
-                                    "days" =>
-                                    {
-                                        if let CommandDataOptionValue::Integer(t) = opt
-                                        {
-                                            time.days = Some(t)
-                                        }
-                                    }
-                                    "hours" =>
-                                    {
-                                        if let CommandDataOptionValue::Integer(t) = opt
-                                        {
-                                            time.hours = Some(t)
-                                        }
-                                    }
-                                    "minutes" =>
-                                    {
-                                        if let CommandDataOptionValue::Integer(t) = opt
-                                        {
-                                            time.minutes = Some(t)
-                                        }
-                                    }
-                                    "seconds" =>
-                                    {
-                                        if let CommandDataOptionValue::Integer(t) = opt
-                                        {
-                                            time.seconds = Some(t)
-                                        }
-                                    }
-                                    _ => unreachable!(),
-                                }
-                            }
-
-                            if user.is_none()
-                            {
-                                error!("Cannot respond to slash command: No 'User' provided");
-                                return;
-                            }
-
-                            if time.is_none()
-                            {
-                                ret = "Error: No units of time were provided!".to_string()
-                            }
-                            else
-                            {
-                                ret = moderation::timeout::timeout(
-                                    &context,
-                                    &command.guild_id.unwrap(),
-                                    user.unwrap(),
-                                    time,
-                                    false,
-                                )
-                                .await
-                                .unwrap()
+                            _ => {
+                                ret = format!("{} Failed!", option.name);
                             }
                         }
-
-                        "release" =>
-                        {
-                            let mut user = None;
-                            for option in option.options
-                            {
-                                let opt = option.resolved.unwrap();
-
-                                match &*option.name
-                                {
-                                    "user" =>
-                                    {
-                                        if let CommandDataOptionValue::User(u, _) = opt
-                                        {
-                                            user = Some(u);
-                                        }
-                                    }
-                                    _ => unreachable!(),
-                                }
-                            }
-
-                            if user.is_none()
-                            {
-                                error!("Cannot respond to slash command: No 'User' provided");
-                                return;
-                            }
-                            let user = user.unwrap();
-
-                            let guild_id = command.guild_id.unwrap();
-
-                            ret = moderation::timeout::release(&context, &guild_id, user).await;
-                        }
-
-                        _ =>
-                        {
-                            ret = format!("{} Failed!", option.name);
-                        }
-                    },
+                    }
                     _ => unreachable!(),
                 }
             }
             ret
         }
 
-        "conversions" =>
-        {
+        "conversions" => {
             let mut ret = "Failed".to_string();
-            for option in command.data.options.clone()
-            {
-                match option.kind
-                {
-                    CommandOptionType::SubCommand => match &*option.name
-                    {
-                        "hours" =>
-                        {
-                            for opt in option.options
-                            {
-                                match &*opt.name
-                                {
-                                    "time" =>
-                                    {
-                                        if let CommandDataOptionValue::String(time) =
-                                            opt.resolved.unwrap()
-                                        {
-                                            ret = conversions::time::run(time)
+            for option in command.data.options.clone() {
+                match option.kind {
+                    CommandOptionType::SubCommand => {
+                        match &*option.name {
+                            "hours" => {
+                                for opt in option.options {
+                                    match &*opt.name {
+                                        "time" => {
+                                            if let CommandDataOptionValue::String(time) =
+                                                opt.resolved.unwrap()
+                                            {
+                                                ret = conversions::time::run(time)
+                                            }
                                         }
+                                        _ => unreachable!(),
                                     }
-                                    _ => unreachable!(),
                                 }
                             }
-                        }
 
-                        "currency" =>
-                        {
-                            let (mut input, mut target) = ("0f".to_string(), "nothing".to_string());
-                            for opt in option.options
-                            {
-                                match &*opt.name
-                                {
-                                    "input" =>
-                                    {
-                                        if let CommandDataOptionValue::String(s) =
-                                            opt.resolved.unwrap()
-                                        {
-                                            input = s;
+                            "currency" => {
+                                let (mut input, mut target) =
+                                    ("0f".to_string(), "nothing".to_string());
+                                for opt in option.options {
+                                    match &*opt.name {
+                                        "input" => {
+                                            if let CommandDataOptionValue::String(s) =
+                                                opt.resolved.unwrap()
+                                            {
+                                                input = s;
+                                            }
                                         }
-                                    }
 
-                                    "target" =>
-                                    {
-                                        if let CommandDataOptionValue::String(s) =
-                                            opt.resolved.unwrap()
-                                        {
-                                            target = s;
+                                        "target" => {
+                                            if let CommandDataOptionValue::String(s) =
+                                                opt.resolved.unwrap()
+                                            {
+                                                target = s;
+                                            }
                                         }
+                                        _ => unreachable!(),
                                     }
-                                    _ => unreachable!(),
                                 }
+                                let mut converter = CURRENCY_CONVERTER.lock().await.to_owned();
+                                (ret, converter) =
+                                    conversions::currency::run(converter, input, target);
+                                *CURRENCY_CONVERTER.lock().await = converter;
                             }
-                            let mut converter = CURRENCY_CONVERTER.lock().unwrap().to_owned();
-                            (ret, converter) = conversions::currency::run(converter, input, target);
-                            *CURRENCY_CONVERTER.lock().unwrap() = converter;
-                        }
 
-                        "temperature" =>
-                        {
-                            let (mut value, mut target) = ("0f".to_string(), "nothing".to_string());
-                            for opt in option.options
-                            {
-                                match &*opt.name
-                                {
-                                    "value" =>
-                                    {
-                                        if let CommandDataOptionValue::String(s) =
-                                            opt.resolved.unwrap()
-                                        {
-                                            value = s;
+                            "temperature" => {
+                                let (mut value, mut target) =
+                                    ("0f".to_string(), "nothing".to_string());
+                                for opt in option.options {
+                                    match &*opt.name {
+                                        "value" => {
+                                            if let CommandDataOptionValue::String(s) =
+                                                opt.resolved.unwrap()
+                                            {
+                                                value = s;
+                                            }
                                         }
-                                    }
 
-                                    "target" =>
-                                    {
-                                        if let CommandDataOptionValue::String(s) =
-                                            opt.resolved.unwrap()
-                                        {
-                                            // Ensure sane numbers
-                                            target = s;
+                                        "target" => {
+                                            if let CommandDataOptionValue::String(s) =
+                                                opt.resolved.unwrap()
+                                            {
+                                                // Ensure sane numbers
+                                                target = s;
+                                            }
                                         }
+                                        _ => unreachable!(),
                                     }
-                                    _ => unreachable!(),
                                 }
+                                let target = target.trim().to_lowercase();
+                                ret = match conversions::temperature::Temperature::from_str(&value)
+                                {
+                                    Ok(mut x) => {
+                                        match &*target {
+                                            "k" | "kel" | "kelvin" => x.as_kel(),
+                                            "c" | "cel" | "celsius" => x.as_cel(),
+                                            "f" | "fah" | "fahrenheit" => x.as_fah(),
+                                            _ => &mut x,
+                                        }
+                                        .to_string()
+                                    }
+
+                                    Err(e) => e.to_string(),
+                                };
                             }
-                            let target = target.trim().to_lowercase();
-                            ret = match conversions::temperature::Temperature::from_str(&value)
-                            {
-                                Ok(mut x) => match &*target
-                                {
-                                    "k" | "kel" | "kelvin" => x.as_kel(),
-                                    "c" | "cel" | "celsius" => x.as_cel(),
-                                    "f" | "fah" | "fahrenheit" => x.as_fah(),
-                                    _ => &mut x,
-                                }
-                                .to_string(),
 
-                                Err(e) => e.to_string(),
-                            };
+                            _ => {
+                                ret = format!("{} Failed!", option.name);
+                            }
                         }
-
-                        _ =>
-                        {
-                            ret = format!("{} Failed!", option.name);
-                        }
-                    },
+                    }
                     _ => unreachable!(),
                 }
             }
             ret
         }
 
-        "random" =>
-        {
+        "random" => {
             let mut ret = "Failed".to_string();
-            for option in command.data.options.clone()
-            {
-                match option.kind
-                {
-                    CommandOptionType::SubCommand => match &*option.name
-                    {
-                        "coin" =>
-                        {
-                            ret = builtins::random::coin();
-                        }
+            for option in command.data.options.clone() {
+                match option.kind {
+                    CommandOptionType::SubCommand => {
+                        match &*option.name {
+                            "coin" => {
+                                ret = builtins::random::coin();
+                            }
 
-                        "roulette" =>
-                        {
-                            ret = builtins::random::roulette();
+                            "roulette" => {
+                                ret = builtins::random::roulette();
+                            }
+                            _ => {
+                                ret = format!("{} Failed!", option.name);
+                            }
                         }
-                        _ =>
-                        {
-                            ret = format!("{} Failed!", option.name);
-                        }
-                    },
+                    }
                     _ => unreachable!(),
                 }
             }
             ret
         }
 
-        "settings" =>
-        {
+        "settings" => {
             let mut ret = "Failed".to_string();
             let guild_id = command.guild_id.unwrap();
-            for option in command.data.options.clone()
-            {
-                match option.kind
-                {
-                    CommandOptionType::SubCommand => match &*option.name
-                    {
-                        "set_log" =>
-                        {
-                            for opt in option.options
-                            {
-                                match &*opt.name
-                                {
-                                    "channel" =>
-                                    {
-                                        if let CommandDataOptionValue::Channel(c) =
-                                            opt.resolved.unwrap()
-                                        {
-                                            ret = builtins::settings::Log::set_log(c, &guild_id)
+            for option in command.data.options.clone() {
+                match option.kind {
+                    CommandOptionType::SubCommand => {
+                        match &*option.name {
+                            "set_log" => {
+                                for opt in option.options {
+                                    match &*opt.name {
+                                        "channel" => {
+                                            if let CommandDataOptionValue::Channel(c) =
+                                                opt.resolved.unwrap()
+                                            {
+                                                ret = builtins::settings::Log::set_log(c, &guild_id)
+                                            }
                                         }
+                                        _ => unreachable!(),
                                     }
-                                    _ => unreachable!(),
                                 }
                             }
-                        }
-                        "remove_log" =>
-                        {
-                            let guild_id = command.guild_id.unwrap();
-                            builtins::settings::Log::remove_log(&guild_id);
-                            ret = "Removed logging channel".to_string()
-                        }
-
-                        "set_wiki_limit" =>
-                        {
-                            let mut limit: usize = 600;
-                            for opt in option.options
-                            {
-                                match &*opt.name
-                                {
-                                    "limit" =>
-                                    {
-                                        if let CommandDataOptionValue::Integer(l) =
-                                            opt.resolved.unwrap()
-                                        {
-                                            limit = l as usize;
-                                        }
-                                    }
-                                    _ => unreachable!(),
-                                }
+                            "remove_log" => {
+                                let guild_id = command.guild_id.unwrap();
+                                builtins::settings::Log::remove_log(&guild_id);
+                                ret = "Removed logging channel".to_string()
                             }
 
-                            ret = builtins::settings::set_wiki_limit(&guild_id, limit);
-                        }
-
-                        "set_warn_behavior" =>
-                        {
-                            let (mut count, mut behavior) = (255_u8, "nothing".to_string());
-                            for opt in option.options
-                            {
-                                match &*opt.name
-                                {
-                                    "behavior" =>
-                                    {
-                                        if let CommandDataOptionValue::String(s) =
-                                            opt.resolved.unwrap()
-                                        {
-                                            behavior = s;
+                            "set_wiki_limit" => {
+                                let mut limit: usize = 600;
+                                for opt in option.options {
+                                    match &*opt.name {
+                                        "limit" => {
+                                            if let CommandDataOptionValue::Integer(l) =
+                                                opt.resolved.unwrap()
+                                            {
+                                                limit = l as usize;
+                                            }
                                         }
+                                        _ => unreachable!(),
                                     }
-
-                                    "max" =>
-                                    {
-                                        if let CommandDataOptionValue::Integer(c) =
-                                            opt.resolved.unwrap()
-                                        {
-                                            // Ensure sane numbers
-                                            count = c.clamp(0, 255) as u8;
-                                        }
-                                    }
-                                    _ => unreachable!(),
                                 }
+
+                                ret = builtins::settings::set_wiki_limit(&guild_id, limit);
                             }
 
-                            let w = match behavior.to_lowercase().as_str()
-                            {
-                                "ban" => WarnBehavior::Ban(count),
-                                "timeout" => WarnBehavior::Timeout {
-                                    warning_count: count,
-                                    duration: moderation::timeout::TimeoutTime {
-                                        seconds: None,
-                                        minutes: None,
-                                        hours: None,
-                                        days: Some(1),
-                                    },
-                                },
-                                _ => WarnBehavior::Nothing,
-                            };
+                            "set_warn_behavior" => {
+                                let (mut count, mut behavior) = (255_u8, "nothing".to_string());
+                                for opt in option.options {
+                                    match &*opt.name {
+                                        "behavior" => {
+                                            if let CommandDataOptionValue::String(s) =
+                                                opt.resolved.unwrap()
+                                            {
+                                                behavior = s;
+                                            }
+                                        }
 
-                            ret = builtins::settings::set_warning_behavior(&guild_id, w);
-                        }
+                                        "max" => {
+                                            if let CommandDataOptionValue::Integer(c) =
+                                                opt.resolved.unwrap()
+                                            {
+                                                // Ensure sane numbers
+                                                count = c.clamp(0, 255) as u8;
+                                            }
+                                        }
+                                        _ => unreachable!(),
+                                    }
+                                }
 
-                        _ =>
-                        {
-                            ret = format!("{} Failed!", option.name);
+                                let w = match behavior.to_lowercase().as_str() {
+                                    "ban" => WarnBehavior::Ban(count),
+                                    "timeout" => {
+                                        WarnBehavior::Timeout {
+                                            warning_count: count,
+                                            duration: moderation::timeout::TimeoutTime {
+                                                seconds: None,
+                                                minutes: None,
+                                                hours: None,
+                                                days: Some(1),
+                                            },
+                                        }
+                                    }
+                                    _ => WarnBehavior::Nothing,
+                                };
+
+                                ret = builtins::settings::set_warning_behavior(&guild_id, w);
+                            }
+
+                            _ => {
+                                ret = format!("{} Failed!", option.name);
+                            }
                         }
-                    },
+                    }
                     _ => unreachable!(),
                 }
             }

@@ -72,6 +72,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a4a4ddaa51a5bc52a6948f74c06d20aaaddb71924eab79b8c97a8c556e942d6a"
 
 [[package]]
+name = "bincode"
+version = "1.3.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b1f45e9417d87227c7a56d22e471c6206462cba514c7590c09aff4cf6d1ddcad"
+dependencies = [
+ "serde",
+]
+
+[[package]]
 name = "bitflags"
 version = "1.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -145,6 +154,7 @@ dependencies = [
 name = "bot_of_retribution"
 version = "0.1.0"
 dependencies = [
+ "bincode",
  "bor_conversions",
  "bor_define",
  "bor_warn",
@@ -154,6 +164,7 @@ dependencies = [
  "image",
  "lazy_static",
  "log",
+ "poloto",
  "quote 0.1.0",
  "rand",
  "serde",
@@ -162,6 +173,7 @@ dependencies = [
  "serenity",
  "structstruck",
  "tokio",
+ "tokio_schedule",
  "toml",
 ]
 
@@ -656,6 +668,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "hypermelon"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "17586512ea784af78de466c46f11fe96b53d67e0393cb7504cac1b7d2121200e"
+
+[[package]]
 name = "iana-time-zone"
 version = "0.1.53"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1017,6 +1035,16 @@ name = "pkg-config"
 version = "0.3.26"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6ac9a59f73473f1b8d852421e59e64809f025994837ef743615c6d0c5b305160"
+
+[[package]]
+name = "poloto"
+version = "17.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "334ef405a26bbb7ecb1e14964d503b83bc87b138b015996a466d5837d3adbd53"
+dependencies = [
+ "chrono",
+ "hypermelon",
+]
 
 [[package]]
 name = "ppv-lite86"
@@ -1601,6 +1629,16 @@ dependencies = [
  "pin-project-lite",
  "tokio",
  "tracing",
+]
+
+[[package]]
+name = "tokio_schedule"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1b91f371e5032da918342685fde2ca040710d38aaec985378e121055fbf031e9"
+dependencies = [
+ "chrono",
+ "tokio",
 ]
 
 [[package]]

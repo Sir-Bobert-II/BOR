@@ -10,9 +10,11 @@ extern crate bor_define as define;
 extern crate bor_warn as warn;
 extern crate bor_wiki as wiki;
 
+use chrono::{Duration, Utc};
 use config::{Config, RestrictedWords};
 use lazy_static::lazy_static;
 use log::{error, info};
+use poloto::build::SinglePlotBuilder;
 use serenity::{
     async_trait,
     model::{
@@ -23,6 +25,7 @@ use serenity::{
     prelude::*,
 };
 use std::path::PathBuf;
+use tokio_schedule::Job;
 
 const CONFIG_FILE: &str = "/etc/bor/config.toml";
 const NAME: &str = "bot_of_retribution";
@@ -37,11 +40,10 @@ lazy_static! {
     static ref CONFIG: config::Config = Config::from(CONFIG_FILE.into()).unwrap();
     static ref RESTRICTED_WORDS: config::RestrictedWords =
         RestrictedWords::from(CONFIG.resources.restricted_words.clone()).unwrap();
-    static ref GUILD_DATA: Mutex<data::UsageData> = Mutex::new({
-        match data::UsageData::load(CONFIG.resources.analytics.clone())
-        {
+    pub static ref DATA: Mutex<data::UsageData> = Mutex::new({
+        match data::UsageData::load(CONFIG.resources.analytics.clone()) {
             Some(x) => x,
-            None => UsageData::default()
+            None => data::UsageData::default(),
         }
     });
 }
@@ -51,6 +53,11 @@ async fn main() -> Result<(), std::io::Error>
 {
     env_logger::init();
     info!("Initialized Logger");
+
+    let data_management = tokio_schedule::every(1)
+        .day()
+        .in_timezone(&Utc)
+        .perform(mangage_data);
 
     let token = &CONFIG.secrets.token;
     let intents = GatewayIntents::GUILD_MESSAGES
@@ -62,11 +69,109 @@ async fn main() -> Result<(), std::io::Error>
         .await
         .expect("Err creating client");
 
-    if let Err(why) = client.start().await
-    {
+    if let Err(why) = client.start().await {
         error!("Error: {:?}", why);
     }
     Ok(())
+}
+
+async fn build_graphs()
+{
+    use poloto::{build, num::timestamp};
+    let data = DATA.lock().await;
+
+    for (_, gdat) in data.gdata.iter() {
+        let data = gdat
+            .requests
+            .iter()
+            .map(|(x, y)| (*x as f64, timestamp::UnixTime::from(*y)));
+        let plots = poloto::plots!(build::plot("").line(data));
+    }
+}
+
+async fn mangage_data()
+{
+    let mut data = DATA.lock().await;
+    let threshold = Utc::now() - Duration::days(30);
+
+    // Remove data older than the threshold
+    for (_, gdat) in data.gdata.iter_mut() {
+        gdat.requests
+            .retain(|(_, timestamp)| *timestamp > threshold)
+    }
+    for (_, udat) in data.udata.iter_mut() {
+        udat.requests
+            .retain(|(_, timestamp)| *timestamp > threshold)
+    }
+}
+
+#[cfg(test)]
+mod tests
+{
+
+    use crate::data::{GuildData, UsageData};
+
+    use super::*;
+    #[tokio::test]
+    async fn test_build_graphs_logic()
+    {
+        use poloto::{build, num::timestamp};
+        use std::collections::HashMap;
+        let data = UsageData {
+            cdata: HashMap::new(),
+            udata: HashMap::new(),
+            gdata: HashMap::from([
+                (
+                    GuildId(122),
+                    GuildData {
+                        gid: GuildId(122),
+                        gname: "PCMR".to_string(),
+                        requests: vec![
+                            (5600, Utc::now() - Duration::hours(5)),
+                            (1000, Utc::now() - Duration::hours(4)),
+                            (6000, Utc::now() - Duration::hours(3)),
+                            (60000, Utc::now() - Duration::hours(2)),
+                            (6000, Utc::now()),
+                        ],
+                    },
+                ),
+                (
+                    GuildId(23),
+                    GuildData {
+                        gid: GuildId(122),
+                        gname: "PCMR".to_string(),
+                        requests: vec![
+                            (5600, Utc::now() - Duration::hours(5)),
+                            (1000, Utc::now() - Duration::hours(4)),
+                            (6000, Utc::now() - Duration::hours(3)),
+                            (60000, Utc::now() - Duration::hours(2)),
+                            (6000, Utc::now()),
+                        ],
+                    },
+                ),
+            ]),
+        };
+        let plots = build::plot("");
+        for (_, gdat) in data.gdata.iter() {
+            let data = gdat
+                .requests
+                .iter()
+                .map(|(x, y)| (timestamp::UnixTime::from(*y), *x as f64));
+            plots.
+
+            build::plot("").histogram(data)
+            poloto::data()
+                .build_and_label((
+                    format!("Command Calls for '{} ({})'", gdat.gname, gdat.gid),
+                    "Time",
+                    "Command Calls",
+                ))
+                .append_to(poloto::header().dark_theme())
+                .render_stdout();
+        }
+
+        assert!(false)
+    }
 }
 
 struct Handler;
@@ -76,8 +181,7 @@ impl EventHandler for Handler
 {
     async fn interaction_create(&self, ctx: Context, interaction: Interaction)
     {
-        if let Interaction::ApplicationCommand(command) = interaction
-        {
+        if let Interaction::ApplicationCommand(command) = interaction {
             commands::run(ctx, command).await;
         }
     }
@@ -86,8 +190,8 @@ impl EventHandler for Handler
     // {
     //     // Check for restricted words and remove them
     //     if !msg.is_private()
-    //         && filtering::is_restricted(msg.content.clone(), &RESTRICTED_WORDS.words)
-    //     {
+    //         && filtering::is_restricted(msg.content.clone(),
+    // &RESTRICTED_WORDS.words)     {
     //         if let Err(why) = msg.delete(&context.http).await
     //         {
     //             error!("Error removing message: {:?}", why);
