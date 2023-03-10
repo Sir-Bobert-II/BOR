@@ -4,7 +4,7 @@ After=multi-user.target
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/bor
+ExecStart=/usr/bin/bor daemon
 
 [Install]
 WantedBy=multi-user.target
