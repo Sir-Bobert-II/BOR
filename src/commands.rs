@@ -35,7 +35,7 @@ pub async fn run(context: Context, command: ApplicationCommandInteraction)
 {
     // Count the command invocations and, after five minutes, update the data.
     let mut cmd_count = COMMAND_COUNT.lock().await;
-    if Utc::now() < cmd_count.1 {
+    if Utc::now() >= cmd_count.1 {
         cmd_count.0 = 0;
         cmd_count.1 = Utc::now() + Duration::minutes(5);
         let mut data = crate::DATA.lock().await;
