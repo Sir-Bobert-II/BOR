@@ -28,7 +28,7 @@ lazy_static! {
             .unwrap()
     });
     static ref COMMAND_COUNT: Mutex<(u64, DateTime<Utc>)> =
-        Mutex::new((0, Utc::now() + Duration::minutes(5)));
+        Mutex::new((0, Utc::now() + Duration::seconds(30)));
 }
 
 pub async fn run(context: Context, command: ApplicationCommandInteraction)
@@ -37,7 +37,7 @@ pub async fn run(context: Context, command: ApplicationCommandInteraction)
     let mut cmd_count = COMMAND_COUNT.lock().await;
     if Utc::now() >= cmd_count.1 {
         cmd_count.0 = 0;
-        cmd_count.1 = Utc::now() + Duration::minutes(5);
+        cmd_count.1 = Utc::now() + Duration::seconds(30);
         let mut data = crate::DATA.lock().await;
 
         // Increment data counters
