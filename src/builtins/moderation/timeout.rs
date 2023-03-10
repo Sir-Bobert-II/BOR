@@ -1,4 +1,5 @@
 use chrono::{Duration, Utc};
+use log::info;
 use serde::{Deserialize, Serialize};
 use serenity::{
     model::{
@@ -76,10 +77,12 @@ pub async fn timeout(
 pub async fn release(context: &Context, gid: &GuildId, user: User) -> String
 {
     let mut member = member_from_id(context, *gid, user.id).await;
-    match member.enable_communication(&context.http).await {
+    let s = match member.enable_communication(&context.http).await {
         Ok(_) => {
             format!("Released user {} from their timeout.", user.name)
         }
         Err(x) => format!("Error: {x}"),
-    }
+    };
+    info!("{s}");
+    s
 }

@@ -1,3 +1,4 @@
+use log::info;
 use serde_derive::*;
 
 use serenity::model::prelude::GuildId;
@@ -8,6 +9,7 @@ use std::{
     path::PathBuf,
 };
 use structstruck::strike;
+
 #[derive(Deserialize, Clone, Serialize)]
 pub struct RestrictedWords
 {
@@ -87,6 +89,7 @@ impl GuildSettings
     pub fn add_guild(&mut self, gid: GuildId, settings: Settings) -> &mut Self
     {
         self.guilds.push(GuildSetting { gid, settings });
+        info!("Added guild settings for '{gid}'");
         self
     }
 
@@ -105,6 +108,7 @@ impl GuildSettings
     {
         if let Some(pos) = self.guilds.clone().iter().position(|g| g.gid == gid) {
             self.guilds.remove(pos);
+            info!("Removed Guild Settings for '{gid}'");
             Ok(self)
         } else {
             Err(())
@@ -114,7 +118,7 @@ impl GuildSettings
     /// Load the settings from disk
     pub fn load(path: PathBuf) -> Result<Self, Error>
     {
-        let contents = read_to_string(path)?;
+        let contents = read_to_string(&path)?;
 
         let settings: GuildSettings = match toml::from_str(&contents) {
             Ok(x) => x,
@@ -124,6 +128,7 @@ impl GuildSettings
             }
         };
 
+        info!("Loaded Guild Settings from '{}'", path.display());
         Ok(settings)
     }
 
@@ -138,8 +143,8 @@ impl GuildSettings
         }
 
         let serialized = toml::to_string(&self).unwrap();
-        fs::write(path, serialized)?;
-
+        fs::write(&path, serialized)?;
+        info!("Saved Guild Settings to {}", path.display());
         Ok(self)
     }
 }
@@ -263,7 +268,13 @@ impl Config
         Ok(config)
     }
 
-    pub fn _save(&self, path: PathBuf) -> Result<(), Error>
+    pub fn set_token(&mut self, token: String) -> &mut Self
+    {
+        self.secrets.token = token;
+        self
+    }
+
+    pub fn save(&self, path: PathBuf) -> Result<(), Error>
     {
         // If there's a parent to this path, ensure it exists
         if let Some(parent) = path.parent() {

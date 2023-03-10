@@ -42,3 +42,4 @@ image = { git="https://github.com/Sir-Bobert-II/BOR-extra", rev = "35eaf038fe240
 bincode = "1.3.3"
 tokio_schedule = "0.3.0"
 poloto = "17.1.0"
+structopt = "0.3.26"

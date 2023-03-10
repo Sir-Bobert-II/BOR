@@ -1,6 +1,7 @@
 use std::{path::PathBuf, sync::Mutex};
 
 use crate::{config::WarnBehavior, CONFIG};
+use log::info;
 use serenity::{
     model::{prelude::GuildId, user::User},
     prelude::Context,
@@ -88,7 +89,10 @@ pub async fn warn(context: &Context, gid: &GuildId, user: User, reason: String) 
         .unwrap()
         .save(WARNINGS_FILE.to_path_buf())
         .unwrap();
-    format!("Warned {uname} for {reason}.")
+
+    let s = format!("Warned {uname} for {reason}.");
+    info!("{s}");
+    s
 }
 
 pub fn remove_warns(gid: &GuildId, user: User) -> String
@@ -122,15 +126,21 @@ pub fn remove_warns(gid: &GuildId, user: User) -> String
         .unwrap()
         .save(WARNINGS_FILE.to_path_buf())
         .unwrap();
-    format!("Removed all warnings for user {}", user.name)
+    let s = format!("Removed all warnings for user {}", user.name);
+
+    info!("{s}");
+    s
 }
 
 pub fn get_warns(gid: &GuildId, user: User) -> String
 {
     let uname = user.name.clone();
-    if let Some(warnings) = WARNINGS.lock().unwrap().get_warnings(*gid, user) {
+    let s = if let Some(warnings) = WARNINGS.lock().unwrap().get_warnings(*gid, user) {
         warnings.to_string()
     } else {
         format!("User {uname} has no warnings on record.")
-    }
+    };
+
+    info!("{s}");
+    s
 }

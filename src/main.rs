@@ -1,8 +1,8 @@
 mod builtins;
 mod commands;
 mod config;
-mod filtering;
 mod data;
+mod filtering;
 
 extern crate bor_conversions as conversions;
 extern crate bor_define as define;
@@ -13,7 +13,6 @@ use chrono::{Duration, Utc};
 use config::{Config, RestrictedWords};
 use lazy_static::lazy_static;
 use log::{error, info};
-use poloto::build::SinglePlotBuilder;
 use serenity::{
     async_trait,
     model::{
@@ -23,7 +22,9 @@ use serenity::{
     },
     prelude::*,
 };
-use std::io::Write;
+use structopt::StructOpt;
+use tokio::spawn;
+
 use std::path::PathBuf;
 use tokio_schedule::Job;
 
@@ -37,7 +38,7 @@ lazy_static! {
             chrono::offset::Local::now().format("%Y-%m-%d %H:%M:%S%.3f")
         ))
     };
-    static ref CONFIG: config::Config = Config::from(CONFIG_FILE.into()).unwrap();
+    static ref CONFIG: config::Config = Config::from(config_file()).unwrap();
     static ref RESTRICTED_WORDS: config::RestrictedWords =
         RestrictedWords::from(CONFIG.resources.restricted_words.clone()).unwrap();
     pub static ref DATA: Mutex<data::UsageData> = Mutex::new({
@@ -46,11 +47,86 @@ lazy_static! {
             None => data::UsageData::default(),
         }
     });
+    static ref CMD_OPTIONS: Options = Options::from_args();
+}
+
+fn config_file() -> PathBuf
+{
+    match &*CMD_OPTIONS {
+        Options::Daemon {
+            config_file: config,
+        } => config.clone(),
+        _ => CONFIG_FILE.into(),
+    }
+}
+
+#[derive(Debug, StructOpt)]
+#[structopt(
+    name = "bor",
+    about = "Bot of Retribution is an open-source, self-hostable, dicord bot"
+)]
+enum Options
+{
+    /// Run the disord bot
+    Daemon
+    {
+        /// Use this path instead of the default config file path
+        #[structopt(short = "c", long = "config", default_value = CONFIG_FILE)]
+        config_file: PathBuf,
+    },
+
+    /// Read/Write configurations and other stored data
+    Info(InfoSubOptions),
+}
+
+#[derive(Debug, StructOpt)]
+enum InfoSubOptions
+{
+    /// Set the discord token
+    SetToken
+    {
+        /// Discord token
+        token: String,
+    },
+
+    /// List the guilds that have used commands in the past month
+    ListGuilds,
 }
 
 #[tokio::main]
 async fn main() -> Result<(), std::io::Error>
 {
+    match &*CMD_OPTIONS {
+        Options::Info(opt) => {
+            match opt {
+                InfoSubOptions::ListGuilds => {
+                    // Print all the guilds that have used commands
+                    let data = DATA.lock().await;
+                    for guild in data.gdata.iter() {
+                        let id = &guild.1.gid;
+                        let name = &guild.1.gname;
+                        println!("{name} ({id})");
+                    }
+                }
+
+                InfoSubOptions::SetToken { token } => {
+                    let mut conf = CONFIG.clone();
+                    conf.set_token(token.clone());
+                    match conf.save(config_file()) {
+                        Err(e) => eprintln!("Couldn't save config file changes: {e}"),
+                        _ => {
+                            println!("Set new token. Restart any bots that use this configuration.")
+                        }
+                    };
+                }
+            }
+
+            // Stop execution here
+            std::process::exit(0);
+        }
+        _ => (),
+    }
+
     env_logger::init();
     info!("Initialized Logger");
 
@@ -58,6 +134,7 @@ async fn main() -> Result<(), std::io::Error>
         .day()
         .in_timezone(&Utc)
         .perform(data::mangage_data);
+    spawn(data_management);
 
     let token = &CONFIG.secrets.token;
     let intents = GatewayIntents::GUILD_MESSAGES
@@ -72,15 +149,15 @@ async fn main() -> Result<(), std::io::Error>
     if let Err(why) = client.start().await {
         error!("Error: {:?}", why);
     }
-    
+
     Ok(())
 }
 
 #[cfg(test)]
 mod tests
 {
-    use std::io::Write;
     use crate::data::{GuildData, UsageData};
+    use std::io::Write;
 
     use super::*;
     #[tokio::test]
@@ -160,7 +237,7 @@ impl EventHandler for Handler
     async fn interaction_create(&self, ctx: Context, interaction: Interaction)
     {
         if let Interaction::ApplicationCommand(command) = interaction {
-            info!("Running command '{}'", command.name);
+            info!("Running command '{}'", command.data.name);
             commands::run(ctx, command).await;
         }
     }
