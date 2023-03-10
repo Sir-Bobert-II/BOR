@@ -7,8 +7,7 @@ pub fn meta() -> String
 {
     let mut buffer = String::new();
 
-    for author in AUTHORS
-    {
+    for author in AUTHORS {
         buffer.push_str(&format!(" {author}"));
     }
 

@@ -16,12 +16,9 @@ lazy_static! {
     static ref SETTINGS_PATH: PathBuf = CONFIG.resources.guild_settings.clone();
     pub(crate) static ref SETTINGS: Mutex<GuildSettings> = Mutex::new({
         let path = CONFIG.resources.guild_settings.clone();
-        if !path.exists()
-        {
+        if !path.exists() {
             GuildSettings::new().save(path).unwrap().clone()
-        }
-        else
-        {
+        } else {
             GuildSettings::load(path).unwrap()
         }
     });
@@ -90,14 +87,11 @@ pub fn set_warning_behavior(gid: &GuildId, w: WarnBehavior) -> String
 {
     let (_, x) = SETTINGS.lock().unwrap().has_guild(gid);
 
-    if let Some(x) = x
-    {
+    if let Some(x) = x {
         SETTINGS.lock().unwrap().guilds[x]
             .settings
             .set_warning_behavior(w);
-    }
-    else
-    {
+    } else {
         let s = config::Settings::new().set_warning_behavior(w).to_owned();
 
         // Make a guild with the settings
@@ -113,14 +107,11 @@ pub fn set_wiki_limit(gid: &GuildId, limit: usize) -> String
 
     let (_, x) = SETTINGS.lock().unwrap().has_guild(gid);
 
-    if let Some(x) = x
-    {
+    if let Some(x) = x {
         SETTINGS.lock().unwrap().guilds[x]
             .settings
             .set_wiki_limit(limit);
-    }
-    else
-    {
+    } else {
         let s = config::Settings::new().set_wiki_limit(limit).to_owned();
 
         // Make a guild with the settings
@@ -139,14 +130,11 @@ impl Log
         let cs = c.clone().name.unwrap();
         let (_, x) = SETTINGS.lock().unwrap().has_guild(gid);
 
-        if let Some(x) = x
-        {
+        if let Some(x) = x {
             SETTINGS.lock().unwrap().guilds[x]
                 .settings
                 .set_log_channel(c);
-        }
-        else
-        {
+        } else {
             let s = config::Settings::new().set_log_channel(c).to_owned();
 
             // Make a guild with the settings
@@ -165,12 +153,9 @@ impl Log
     {
         let (_, x) = SETTINGS.lock().unwrap().has_guild(gid);
 
-        if let Some(x) = x
-        {
+        if let Some(x) = x {
             SETTINGS.lock().unwrap().guilds[x].settings.log_channel = None;
-        }
-        else
-        {
+        } else {
             let mut s = config::Settings::new();
             s.log_channel = None;
 

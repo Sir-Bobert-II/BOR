@@ -1,3 +1,4 @@
+use log::info;
 use serde_derive::*;
 
 use serenity::model::prelude::GuildId;
@@ -8,6 +9,7 @@ use std::{
     path::PathBuf,
 };
 use structstruck::strike;
+
 #[derive(Deserialize, Clone, Serialize)]
 pub struct RestrictedWords
 {
@@ -19,8 +21,7 @@ impl RestrictedWords
     pub fn from(path: PathBuf) -> Result<Self, Error>
     {
         let contents = read_to_string(path)?;
-        let words: Self = match toml::from_str(&contents)
-        {
+        let words: Self = match toml::from_str(&contents) {
             Ok(x) => x,
             Err(x) => return Err(Error::new(ErrorKind::Other, x)),
         };
@@ -88,18 +89,16 @@ impl GuildSettings
     pub fn add_guild(&mut self, gid: GuildId, settings: Settings) -> &mut Self
     {
         self.guilds.push(GuildSetting { gid, settings });
+        info!("Added guild settings for '{gid}'");
         self
     }
 
     /// If found, returns the location of the guild
     pub fn has_guild(&self, gid: &GuildId) -> (&Self, Option<usize>)
     {
-        if let Some(pos) = self.guilds.clone().iter().position(|g| g.gid == *gid)
-        {
+        if let Some(pos) = self.guilds.clone().iter().position(|g| g.gid == *gid) {
             (self, Some(pos))
-        }
-        else
-        {
+        } else {
             (self, None)
         }
     }
@@ -107,13 +106,11 @@ impl GuildSettings
     /// Remove a guild's settings
     pub fn _remove_guild(&mut self, gid: GuildId) -> Result<&mut Self, ()>
     {
-        if let Some(pos) = self.guilds.clone().iter().position(|g| g.gid == gid)
-        {
+        if let Some(pos) = self.guilds.clone().iter().position(|g| g.gid == gid) {
             self.guilds.remove(pos);
+            info!("Removed Guild Settings for '{gid}'");
             Ok(self)
-        }
-        else
-        {
+        } else {
             Err(())
         }
     }
@@ -121,18 +118,17 @@ impl GuildSettings
     /// Load the settings from disk
     pub fn load(path: PathBuf) -> Result<Self, Error>
     {
-        let contents = read_to_string(path)?;
+        let contents = read_to_string(&path)?;
 
-        let settings: GuildSettings = match toml::from_str(&contents)
-        {
+        let settings: GuildSettings = match toml::from_str(&contents) {
             Ok(x) => x,
-            Err(x) =>
-            {
+            Err(x) => {
                 println!("{contents}");
                 return Err(Error::new(ErrorKind::Other, x.to_string()));
             }
         };
 
+        info!("Loaded Guild Settings from '{}'", path.display());
         Ok(settings)
     }
 
@@ -140,17 +136,15 @@ impl GuildSettings
     pub fn save(&self, path: PathBuf) -> Result<&Self, Error>
     {
         // If there's a parent to this path, ensure it exists
-        if let Some(parent) = path.parent()
-        {
-            if !parent.exists()
-            {
+        if let Some(parent) = path.parent() {
+            if !parent.exists() {
                 create_dir_all(parent)?;
             }
         }
 
         let serialized = toml::to_string(&self).unwrap();
-        fs::write(path, serialized)?;
-
+        fs::write(&path, serialized)?;
+        info!("Saved Guild Settings to {}", path.display());
         Ok(self)
     }
 }
@@ -203,9 +197,7 @@ impl Settings
         {
             self.restricted_words.remove(pos);
             Ok(self)
-        }
-        else
-        {
+        } else {
             Err(())
         }
     }
@@ -242,16 +234,22 @@ strike! {
 
             #[serde(default = "_d_guild_settings" )]
             pub guild_settings: PathBuf,
+
+            #[serde(default = "_d_analytics" )]
+            pub analytics: PathBuf,
+
+            #[serde(default = "_d_scratch" )]
+            pub scratch: PathBuf,
         },
 
     }
 }
 
 fn _d_restricted_words() -> PathBuf { PathBuf::from("/etc/bor/restricted_words.toml") }
-
 fn _d_warnings() -> PathBuf { PathBuf::from("/var/local/bor/warnings.toml") }
-
 fn _d_guild_settings() -> PathBuf { PathBuf::from("/var/local/bor/guild_settings.toml") }
+fn _d_analytics() -> PathBuf { PathBuf::from("/var/local/bor/analytics.data") }
+fn _d_scratch() -> PathBuf { PathBuf::from("/tmp/bor/") }
 
 impl Config
 {
@@ -259,11 +257,9 @@ impl Config
     {
         let contents = read_to_string(path)?;
 
-        let config: Config = match toml::from_str(&contents)
-        {
+        let config: Config = match toml::from_str(&contents) {
             Ok(x) => x,
-            Err(x) =>
-            {
+            Err(x) => {
                 println!("{contents}");
                 return Err(Error::new(ErrorKind::Other, x.to_string()));
             }
@@ -272,13 +268,17 @@ impl Config
         Ok(config)
     }
 
-    pub fn _save(&self, path: PathBuf) -> Result<(), Error>
+    pub fn set_token(&mut self, token: String) -> &mut Self
+    {
+        self.secrets.token = token;
+        self
+    }
+
+    pub fn save(&self, path: PathBuf) -> Result<(), Error>
     {
         // If there's a parent to this path, ensure it exists
-        if let Some(parent) = path.parent()
-        {
-            if !parent.exists()
-            {
+        if let Some(parent) = path.parent() {
+            if !parent.exists() {
                 create_dir_all(parent)?;
             }
         }

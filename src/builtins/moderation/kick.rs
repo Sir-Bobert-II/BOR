@@ -1,4 +1,4 @@
-use log::error;
+use log::{error, info};
 use serenity::{
     model::{prelude::GuildId, user::User},
     prelude::Context,
@@ -11,13 +11,13 @@ pub async fn run(context: &Context, gid: &GuildId, user: &User, reason: String) 
 {
     let member = member_from_id(context, *gid, user.id).await;
 
-    match member.kick_with_reason(&context.http, &reason).await
-    {
+    let s = match member.kick_with_reason(&context.http, &reason).await {
         Ok(_) => format!("Kicked '{}'", user.name),
-        Err(x) =>
-        {
+        Err(x) => {
             error!("Error kicking guild member: {:?}", x);
             format!("Error kicking guild member: {x:?}")
         }
-    }
+    };
+    info!("{s}");
+    s
 }
